@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Qardo — Business Cards</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Lato:wght@300;400&family=Libre+Baskerville:wght@400;700&family=Josefin+Sans:wght@300;400&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -490,7 +489,6 @@ let editFont  = "georgia";
 let editLogo  = null;
 let screenStack= ["sc-home"];
 let activeTab = "home";
-let qrInstance= null;
 
 // ── DB helpers ─────────────────────────────────────────────────────────────
 function cleanRow(card, uid){
@@ -762,19 +760,11 @@ function openShare(idx){
       <button class="btn btn-light" onclick="shareNative('${shareUrl}','${c.name}')">Teilen via...</button>
     </div>`;
   goTo("sc-share");
-  function tryQR(attempts){
-    const el=document.getElementById("qr-container");
-    if(!el) return;
-    if(typeof QRCode==="undefined"){
-      if(attempts>0) setTimeout(()=>tryQR(attempts-1),200);
-      return;
-    }
-    if(qrInstance){ try{qrInstance.clear();}catch(e){} qrInstance=null; }
-    el.innerHTML="";
-    try{ qrInstance=new QRCode(el,{text:shareUrl,width:190,height:190,colorDark:"#1a1a1a",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M}); }
-    catch(e){ console.error("QR error:",e); }
+  const el=document.getElementById("qr-container");
+  if(el){
+    const encoded=encodeURIComponent(shareUrl);
+    el.innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=190x190&margin=4&color=1a1a1a&bgcolor=ffffff&data=${encoded}" style="display:block;width:190px;height:190px;" alt="QR Code">`;
   }
-  setTimeout(()=>tryQR(10),150);
 }
 
 function copyLink(url){
