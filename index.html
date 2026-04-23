@@ -742,7 +742,8 @@ async function deleteCard(idx){
 function openShare(idx){
   const c=myCards[idx];
   if(!c) return;
-  const cardData={name:c.name,title:c.title,company:c.company,email:c.email,phone:c.phone,website:c.website,template:c.template,font:c.font||"georgia",logo:c.logo||"",linkedin:c.linkedin||"",xing:c.xing||"",instagram:c.instagram||""};
+  // Logo excluded from URL — too large for QR code
+  const cardData={name:c.name,title:c.title,company:c.company,email:c.email,phone:c.phone,website:c.website,template:c.template,font:c.font||"georgia",linkedin:c.linkedin||"",xing:c.xing||"",instagram:c.instagram||""};
   const shareUrl=`${location.origin}${location.pathname}?card=${encodeURIComponent(JSON.stringify(cardData))}`;
   document.getElementById("share-body").innerHTML=`
     <div class="fadein" style="margin-bottom:16px;">${buildCard(c,c.template,false)}</div>
