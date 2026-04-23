@@ -442,7 +442,9 @@ const SOCIALS=[
 // ── Supabase ───────────────────────────────────────────────────────────────
 const SUPA_URL = "https://mmvaqukcmezovvqwyelh.supabase.co";
 const SUPA_KEY = "sb_publishable_U82sMrHUJuuSx4eVz1e_EQ_qXlaujHT";
-const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true }
+});
 
 // ── State ──────────────────────────────────────────────────────────────────
 let myCards   = [];
@@ -456,36 +458,58 @@ let activeTab = "home";
 let qrInstance= null;
 
 // ── DB helpers ─────────────────────────────────────────────────────────────
+function cleanRow(card, uid){
+  return {
+    user_id:   uid,
+    name:      card.name||"",
+    title:     card.title||"",
+    company:   card.company||"",
+    email:     card.email||"",
+    phone:     card.phone||"",
+    website:   card.website||"",
+    linkedin:  card.linkedin||"",
+    xing:      card.xing||"",
+    instagram: card.instagram||"",
+    template:  card.template||"cotton",
+  };
+}
+
 async function loadFromDB(){
   if(!currentUser) return;
-  const {data:cards} = await supa.from("cards").select("*").eq("user_id", currentUser.id).order("created_at");
-  const {data:wal}   = await supa.from("wallet").select("*").eq("user_id", currentUser.id).order("saved_at");
-  myCards = cards||[];
-  wallet  = wal||[];
+  const uid = currentUser.id;
+  const {data:cards, error:e1} = await supa.from("cards").select("*").eq("user_id", uid).order("created_at");
+  const {data:wal,   error:e2} = await supa.from("wallet").select("*").eq("user_id", uid).order("saved_at");
+  if(e1) console.error("cards load error:", e1);
+  if(e2) console.error("wallet load error:", e2);
+  myCards = (cards||[]).map(c=>({...c, db_id:c.id, id:c.id}));
+  wallet  = (wal||[]).map(c=>({...c, db_id:c.id, id:c.id}));
 }
 
 async function saveCardToDB(card){
-  if(!currentUser) return;
-  const row = {...card, user_id: currentUser.id};
-  delete row.id;
+  if(!currentUser) return null;
+  const row = cleanRow(card, currentUser.id);
   if(card.db_id){
-    await supa.from("cards").update(row).eq("id", card.db_id);
+    const {error} = await supa.from("cards").update(row).eq("id", card.db_id);
+    if(error) console.error("update error:", error);
+    return card.db_id;
   } else {
-    const {data} = await supa.from("cards").insert(row).select().single();
-    if(data) card.db_id = data.id;
+    const {data, error} = await supa.from("cards").insert(row).select().single();
+    if(error) console.error("insert error:", error);
+    return data?.id||null;
   }
 }
 
 async function deleteCardFromDB(dbId){
   if(!currentUser||!dbId) return;
-  await supa.from("cards").delete().eq("id", dbId);
+  const {error} = await supa.from("cards").delete().eq("id", dbId);
+  if(error) console.error("delete error:", error);
 }
 
 async function saveWalletToDB(card){
   if(!currentUser) return;
-  const row = {...card, user_id: currentUser.id, saved_at: new Date().toISOString()};
-  delete row.id; delete row.db_id;
-  await supa.from("wallet").insert(row);
+  const row = cleanRow(card, currentUser.id);
+  const {error} = await supa.from("wallet").insert(row);
+  if(error) console.error("wallet insert error:", error);
 }
 
 async function deleteWalletFromDB(dbId){
@@ -752,7 +776,8 @@ async function saveCard(){
     xing:     document.getElementById("f-xing").value.trim(),
     instagram:document.getElementById("f-instagram").value.trim(),
   };
-  await saveCardToDB(card);
+  const dbId = await saveCardToDB(card);
+  if(dbId) card.db_id = dbId;
   if(editId!==null) myCards[editId]=card;
   else myCards.push(card);
   renderHome();
