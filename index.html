@@ -744,28 +744,37 @@ function openShare(idx){
   if(!c) return;
   const cardData={name:c.name,title:c.title,company:c.company,email:c.email,phone:c.phone,website:c.website,template:c.template,font:c.font||"georgia",logo:c.logo||"",linkedin:c.linkedin||"",xing:c.xing||"",instagram:c.instagram||""};
   const shareUrl=`${location.origin}${location.pathname}?card=${encodeURIComponent(JSON.stringify(cardData))}`;
-  const urlDisplay=location.hostname;
-  // Build QR via canvas using simple matrix
-  function makeQR(text){
-    // Use Google Charts as most reliable QR source
-    return `<img src="https://chart.googleapis.com/chart?cht=qr&chs=190x190&chl=${encodeURIComponent(text)}&choe=UTF-8&chld=M|1" width="190" height="190" style="display:block;" onerror="this.style.display='none';document.getElementById('qr-fallback').style.display='block';">
-      <div id="qr-fallback" style="display:none;width:190px;height:190px;display:flex;align-items:center;justify-content:center;background:#f9f8f5;border-radius:8px;">
-        <div style="text-align:center;font-family:Georgia,serif;font-size:11px;color:#7a6a55;padding:10px;">Link kopieren<br>und teilen ↓</div>
-      </div>`;
-  }
   document.getElementById("share-body").innerHTML=`
     <div class="fadein" style="margin-bottom:16px;">${buildCard(c,c.template,false)}</div>
     <div style="background:#f5f3ee;border-radius:10px;padding:8px 14px;margin-bottom:14px;width:100%;text-align:center;">
       <div style="font-size:9px;color:#aaa;letter-spacing:1.5px;text-transform:uppercase;font-family:Georgia,serif;margin-bottom:2px;">Dein Link</div>
-      <div style="font-size:12px;color:#1e3a28;font-family:Georgia,serif;word-break:break-all;">${urlDisplay}</div>
+      <div style="font-size:12px;color:#1e3a28;font-family:Georgia,serif;word-break:break-all;">${location.hostname}</div>
     </div>
-    <div class="qr-box">${makeQR(shareUrl)}</div>
+    <div class="qr-box"><canvas id="qr-canvas" width="200" height="200"></canvas></div>
     <div style="margin-top:12px;font-size:13px;color:#7a6a55;font-family:Georgia,serif;text-align:center;">Kamera-App öffnen und scannen</div>
     <div class="btn-row" style="margin-top:14px;width:100%;">
       <button class="btn btn-dark" onclick="copyLink('${shareUrl}')">🔗 Link kopieren</button>
       <button class="btn btn-light" onclick="shareNative('${shareUrl}','${c.name}')">Teilen via...</button>
     </div>`;
   goTo("sc-share");
+  setTimeout(()=>drawQR(shareUrl,"qr-canvas"),200);
+}
+
+function drawQR(text, canvasId){
+  const canvas=document.getElementById(canvasId);
+  if(!canvas) return;
+  // Use qrcode-generator (loaded via module)
+  import("https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.esm.js").then(mod=>{
+    mod.default.toCanvas(canvas,text,{width:200,margin:2,color:{dark:"#1a1a1a",light:"#ffffff"}}).catch(e=>console.error(e));
+  }).catch(e=>{
+    // Final fallback: show link text on canvas
+    const ctx=canvas.getContext("2d");
+    ctx.fillStyle="#f9f8f5"; ctx.fillRect(0,0,200,200);
+    ctx.fillStyle="#1e3a28"; ctx.font="bold 13px Georgia"; ctx.textAlign="center";
+    ctx.fillText("Link kopieren",100,90);
+    ctx.font="13px Georgia"; ctx.fillStyle="#7a6a55";
+    ctx.fillText("und teilen ↓",100,112);
+  });
 }
 
 function copyLink(url){
