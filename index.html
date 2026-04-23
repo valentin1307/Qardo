@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Qardo — Business Cards</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{--g:#1e3a28;--gl:#2a4e36;--gold:#c8a96e;--cream:#faf7f0;--border:#e8e4dc;}
@@ -438,21 +439,63 @@ const SOCIALS=[
   {key:"instagram",label:"Instagram",prefix:"instagram.com/",   color:"#C13584", icon:"ig"},
 ];
 
+// ── Supabase ───────────────────────────────────────────────────────────────
+const SUPA_URL = "https://mmvaqukcmezovvqwyelh.supabase.co";
+const SUPA_KEY = "sb_publishable_U82sMrHUJuuSx4eVz1e_EQ_qXlaujHT";
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+
 // ── State ──────────────────────────────────────────────────────────────────
-let myCards   = JSON.parse(localStorage.getItem("qardo_cards")||"[]");
-let wallet    = JSON.parse(localStorage.getItem("qardo_wallet")||"[]");
+let myCards   = [];
+let wallet    = [];
 let isPro     = JSON.parse(localStorage.getItem("qardo_pro")||"false");
+let currentUser = null;
 let editId    = null;
 let editTpl   = "cotton";
 let screenStack= ["sc-home"];
 let activeTab = "home";
 let qrInstance= null;
 
-// ── Save ───────────────────────────────────────────────────────────────────
+// ── DB helpers ─────────────────────────────────────────────────────────────
+async function loadFromDB(){
+  if(!currentUser) return;
+  const {data:cards} = await supa.from("cards").select("*").eq("user_id", currentUser.id).order("created_at");
+  const {data:wal}   = await supa.from("wallet").select("*").eq("user_id", currentUser.id).order("saved_at");
+  myCards = cards||[];
+  wallet  = wal||[];
+}
+
+async function saveCardToDB(card){
+  if(!currentUser) return;
+  const row = {...card, user_id: currentUser.id};
+  delete row.id;
+  if(card.db_id){
+    await supa.from("cards").update(row).eq("id", card.db_id);
+  } else {
+    const {data} = await supa.from("cards").insert(row).select().single();
+    if(data) card.db_id = data.id;
+  }
+}
+
+async function deleteCardFromDB(dbId){
+  if(!currentUser||!dbId) return;
+  await supa.from("cards").delete().eq("id", dbId);
+}
+
+async function saveWalletToDB(card){
+  if(!currentUser) return;
+  const row = {...card, user_id: currentUser.id, saved_at: new Date().toISOString()};
+  delete row.id; delete row.db_id;
+  await supa.from("wallet").insert(row);
+}
+
+async function deleteWalletFromDB(dbId){
+  if(!currentUser||!dbId) return;
+  await supa.from("wallet").delete().eq("id", dbId);
+}
+
+// ── Save (legacy local fallback) ───────────────────────────────────────────
 function save(){
-  localStorage.setItem("qardo_cards", JSON.stringify(myCards));
-  localStorage.setItem("qardo_wallet",JSON.stringify(wallet));
-  localStorage.setItem("qardo_pro",   JSON.stringify(isPro));
+  localStorage.setItem("qardo_pro", JSON.stringify(isPro));
 }
 
 // ── Clock ──────────────────────────────────────────────────────────────────
@@ -620,9 +663,11 @@ function openDetail(idx){
 }
 
 // ── Delete card ────────────────────────────────────────────────────────────
-function deleteCard(idx){
+async function deleteCard(idx){
   if(!confirm("Visitenkarte wirklich löschen?")) return;
-  myCards.splice(idx,1); save();
+  const dbId=myCards[idx]?.db_id||myCards[idx]?.id;
+  await deleteCardFromDB(dbId);
+  myCards.splice(idx,1);
   goBack(); goBack();
   renderHome();
 }
@@ -691,24 +736,26 @@ function openEditor(idx){
 function clearEditorFields(){
   ["f-name","f-title","f-company","f-email","f-phone","f-website","f-linkedin","f-xing","f-instagram"].forEach(id=>document.getElementById(id).value="");
 }
-function saveCard(){
+async function saveCard(){
   const name=document.getElementById("f-name").value.trim();
   if(!name){ toast("Name ist erforderlich"); return; }
   const card={
-    id: editId!==null?myCards[editId].id:Date.now(),
+    db_id: editId!==null?myCards[editId].db_id:null,
+    id:    editId!==null?myCards[editId].id:Date.now(),
     name, template:editTpl,
-    title:   document.getElementById("f-title").value.trim(),
-    company: document.getElementById("f-company").value.trim(),
-    email:   document.getElementById("f-email").value.trim(),
-    phone:   document.getElementById("f-phone").value.trim(),
-    website: document.getElementById("f-website").value.trim(),
-    linkedin:document.getElementById("f-linkedin").value.trim(),
-    xing:    document.getElementById("f-xing").value.trim(),
+    title:    document.getElementById("f-title").value.trim(),
+    company:  document.getElementById("f-company").value.trim(),
+    email:    document.getElementById("f-email").value.trim(),
+    phone:    document.getElementById("f-phone").value.trim(),
+    website:  document.getElementById("f-website").value.trim(),
+    linkedin: document.getElementById("f-linkedin").value.trim(),
+    xing:     document.getElementById("f-xing").value.trim(),
     instagram:document.getElementById("f-instagram").value.trim(),
   };
+  await saveCardToDB(card);
   if(editId!==null) myCards[editId]=card;
   else myCards.push(card);
-  save(); renderHome();
+  renderHome();
   goBack();
   toast(editId!==null?"Karte gespeichert ✦":"Karte erstellt ✦");
 }
@@ -773,7 +820,12 @@ function openWalletDetail(idx){
     <button class="btn btn-danger" onclick="removeWallet(${idx})">Aus Wallet entfernen</button>`;
   goTo("sc-wallet-detail");
 }
-function removeWallet(idx){ wallet.splice(idx,1); save(); goBack(); renderWallet(); }
+async function removeWallet(idx){
+  const dbId=wallet[idx]?.id;
+  await deleteWalletFromDB(dbId);
+  wallet.splice(idx,1);
+  goBack(); renderWallet();
+}
 
 // ── Paywall ────────────────────────────────────────────────────────────────
 function showPaywall(){ document.getElementById("paywall").classList.add("show"); }
@@ -829,46 +881,47 @@ function flipCard(){
   document.getElementById("auth-err-back").textContent="";
 }
 
-function doAuth(){
+async function doAuth(){
   const email=document.getElementById("auth-email").value.trim();
   const pw=document.getElementById("auth-pw").value;
   const err=document.getElementById("auth-err");
   if(!email||!pw){err.textContent="Bitte alle Felder ausfüllen.";return;}
-  const raw=localStorage.getItem("qardo_user_"+email);
-  if(!raw){err.textContent="Kein Konto gefunden — bitte registrieren.";return;}
-  const user=JSON.parse(raw);
-  if(user.pw!==pw){err.textContent="Falsches Passwort.";return;}
-  localStorage.setItem("qardo_session",email);
-  startApp(user);
+  err.textContent="Einen Moment...";
+  const {data,error}=await supa.auth.signInWithPassword({email,password:pw});
+  if(error){err.textContent="Falsche E-Mail oder Passwort.";return;}
+  await startApp(data.user);
 }
 
-function doRegister(){
+async function doRegister(){
   const name=document.getElementById("auth-name").value.trim();
   const email=document.getElementById("auth-email-back").value.trim();
   const pw=document.getElementById("auth-pw-back").value;
   const err=document.getElementById("auth-err-back");
   if(!name||!email||!pw){err.textContent="Bitte alle Felder ausfüllen.";return;}
   if(pw.length<6){err.textContent="Passwort mindestens 6 Zeichen.";return;}
-  if(localStorage.getItem("qardo_user_"+email)){err.textContent="E-Mail bereits registriert.";return;}
-  const user={email,pw,name};
-  localStorage.setItem("qardo_user_"+email,JSON.stringify(user));
-  localStorage.setItem("qardo_session",email);
-  startApp(user);
+  err.textContent="Konto wird erstellt...";
+  const {data,error}=await supa.auth.signUp({email,password:pw,options:{data:{name}}});
+  if(error){err.textContent=error.message;return;}
+  await startApp(data.user);
 }
 
-function startApp(user){
+async function startApp(user){
+  currentUser=user;
+  await loadFromDB();
   document.getElementById("auth-wrap").style.display="none";
   document.getElementById("app-wrap").style.display="flex";
-  document.getElementById("profile-name").textContent=user.name||user.email;
+  const name=user.user_metadata?.name||user.email;
+  document.getElementById("profile-name").textContent=name;
   document.getElementById("profile-email").textContent=user.email;
   renderHome();
   renderWallet();
   updateProfile();
 }
 
-function logout(){
+async function logout(){
   if(!confirm("Wirklich abmelden?"))return;
-  localStorage.removeItem("qardo_session");
+  await supa.auth.signOut();
+  currentUser=null; myCards=[]; wallet=[];
   document.getElementById("app-wrap").style.display="none";
   document.getElementById("auth-wrap").style.display="flex";
   document.getElementById("auth-email").value="";
@@ -877,18 +930,19 @@ function logout(){
   document.getElementById("bigcard-inner").classList.remove("flipped");
 }
 
-function checkSession(){
-  const email=localStorage.getItem("qardo_session");
-  if(!email)return false;
-  const raw=localStorage.getItem("qardo_user_"+email);
-  if(!raw)return false;
-  startApp(JSON.parse(raw));
+async function checkSession(){
+  const {data:{session}}=await supa.auth.getSession();
+  if(!session)return false;
+  await startApp(session.user);
   return true;
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
 checkIncoming();
-if(!checkSession()){ renderHome(); renderWallet(); updateProfile(); }
+(async()=>{
+  const ok = await checkSession();
+  if(!ok){ renderHome(); renderWallet(); updateProfile(); }
+})();
 </script>
 </body>
 </html>
