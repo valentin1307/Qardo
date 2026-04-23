@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Qardo — Business Cards</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Lato:wght@300;400&family=Libre+Baskerville:wght@400;700&family=Josefin+Sans:wght@300;400&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -344,6 +345,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
       </div>
       <div class="editor-tabs">
         <button class="editor-tab active" id="tab-design" onclick="switchTab('design')">✦ Design</button>
+        <button class="editor-tab" id="tab-font" onclick="switchTab('font')">Aa Schrift</button>
         <button class="editor-tab" id="tab-info" onclick="switchTab('info')">✎ Infos</button>
         <button class="editor-tab" id="tab-social" onclick="switchTab('social')">◈ Social</button>
       </div>
@@ -354,6 +356,10 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
         <div class="sec">Design wählen</div>
         <div class="tpl-grid" id="tpl-grid"></div>
       </div>
+      <div id="panel-font" style="padding:14px;display:none;">
+        <div class="sec">Schriftart wählen</div>
+        <div id="font-grid" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
       <div id="panel-info" style="padding:16px;display:none;">
         <div class="form-group"><label class="form-label">Name *</label><input class="form-input" id="f-name" placeholder="Max Mustermann" oninput="livePreview()"></div>
         <div class="form-group"><label class="form-label">Berufsbezeichnung</label><input class="form-input" id="f-title" placeholder="Designer" oninput="livePreview()"></div>
@@ -361,6 +367,25 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
         <div class="form-group"><label class="form-label">E-Mail</label><input class="form-input" id="f-email" type="email" placeholder="max@firma.at" oninput="livePreview()"></div>
         <div class="form-group"><label class="form-label">Telefon</label><input class="form-input" id="f-phone" type="tel" placeholder="+43 664 123 456" oninput="livePreview()"></div>
         <div class="form-group"><label class="form-label">Website</label><input class="form-input" id="f-website" type="url" placeholder="https://firma.at" oninput="livePreview()"></div>
+        <div class="form-group">
+          <label class="form-label">Deine persönliche URL</label>
+          <div style="display:flex;align-items:center;border:0.5px solid #d8d0c0;border-radius:10px;overflow:hidden;background:#fff;">
+            <span style="padding:12px 10px;font-size:12px;color:#aaa;font-family:Georgia,serif;white-space:nowrap;border-right:0.5px solid #e8e0d0;">qardo.app/</span>
+            <input style="flex:1;border:none;padding:12px 10px;font-size:14px;font-family:Georgia,serif;outline:none;" id="f-slug" placeholder="deinname" oninput="livePreview()">
+          </div>
+          <div style="font-size:10px;color:#aaa;margin-top:5px;font-family:Georgia,serif;">Nur Buchstaben, Zahlen und Bindestriche</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Firmenlogo (optional)</label>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div id="logo-preview" style="width:50px;height:34px;border:0.5px solid #d8d0c0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;background:#f9f8f5;overflow:hidden;flex-shrink:0;">🏢</div>
+            <label style="flex:1;padding:10px 14px;border:0.5px solid #d8d0c0;border-radius:10px;font-size:13px;font-family:Georgia,serif;color:#7a6a55;cursor:pointer;text-align:center;background:#f9f8f5;">
+              Logo hochladen
+              <input type="file" id="f-logo" accept="image/*" style="display:none;" onchange="handleLogo(this)">
+            </label>
+            <button onclick="clearLogo()" style="padding:10px;border-radius:10px;background:#fff5f5;color:#c04040;border:0.5px solid #f0c0c0;font-size:12px;font-family:Georgia,serif;cursor:pointer;">✕</button>
+          </div>
+        </div>
       </div>
       <div id="panel-social" style="padding:16px;display:none;">
         <div style="font-size:13px;color:#7a6a55;font-family:Georgia,serif;line-height:1.6;margin-bottom:18px;">Nur Benutzernamen eingeben — kein Link nötig.</div>
@@ -424,14 +449,22 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 <script>
 // ── Constants ──────────────────────────────────────────────────────────────
 const TEMPLATES=[
-  {id:"cotton",  name:"Cotton",  bg:"#faf8f4",text:"#1a1a1a",sub:"#7a6a55",accent:"#2a2a2a",border:"#c8b99a",pat:"lines", font:"serif"},
-  {id:"noir",    name:"Noir",    bg:"#0f0f0f",text:"#f5f0e8",sub:"#c8a96e",accent:"#c8a96e",border:"#2a2a2a",pat:"dots",  font:"serif"},
-  {id:"forest",  name:"Forest",  bg:"#1c2e20",text:"#e8f0e4",sub:"#8fba8a",accent:"#8fba8a",border:"#2e4a32",pat:"grid",  font:"serif"},
-  {id:"slate",   name:"Slate",   bg:"#f0f2f5",text:"#1a2030",sub:"#4a6080",accent:"#1a2030",border:"#c0cad8",pat:"none",  font:"mono"},
-  {id:"rose",    name:"Rose",    bg:"#fdf5f0",text:"#2e1a10",sub:"#b06040",accent:"#c07050",border:"#e8c0a8",pat:"lines", font:"serif"},
-  {id:"midnight",name:"Midnight",bg:"#0a0e1a",text:"#e8eeff",sub:"#6a8adf",accent:"#8aaeff",border:"#1a2040",pat:"dots",  font:"serif"},
-  {id:"ivory",   name:"Ivory",   bg:"#fffef8",text:"#2a2010",sub:"#8a7a60",accent:"#2a2010",border:"#e0d8c0",pat:"grid",  font:"serif"},
-  {id:"graphite",name:"Graphite",bg:"#2a2a2a",text:"#f0f0f0",sub:"#909090",accent:"#e0e0e0",border:"#404040",pat:"none",  font:"mono"},
+  {id:"cotton",  name:"Cotton",  bg:"#faf8f4",text:"#1a1a1a",sub:"#7a6a55",accent:"#2a2a2a",border:"#c8b99a",pat:"lines"},
+  {id:"noir",    name:"Noir",    bg:"#0f0f0f",text:"#f5f0e8",sub:"#c8a96e",accent:"#c8a96e",border:"#2a2a2a",pat:"dots"},
+  {id:"forest",  name:"Forest",  bg:"#1c2e20",text:"#e8f0e4",sub:"#8fba8a",accent:"#8fba8a",border:"#2e4a32",pat:"grid"},
+  {id:"slate",   name:"Slate",   bg:"#f0f2f5",text:"#1a2030",sub:"#4a6080",accent:"#1a2030",border:"#c0cad8",pat:"none"},
+  {id:"rose",    name:"Rose",    bg:"#fdf5f0",text:"#2e1a10",sub:"#b06040",accent:"#c07050",border:"#e8c0a8",pat:"lines"},
+  {id:"midnight",name:"Midnight",bg:"#0a0e1a",text:"#e8eeff",sub:"#6a8adf",accent:"#8aaeff",border:"#1a2040",pat:"dots"},
+  {id:"ivory",   name:"Ivory",   bg:"#fffef8",text:"#2a2010",sub:"#8a7a60",accent:"#2a2010",border:"#e0d8c0",pat:"grid"},
+  {id:"graphite",name:"Graphite",bg:"#2a2a2a",text:"#f0f0f0",sub:"#909090",accent:"#e0e0e0",border:"#404040",pat:"none"},
+];
+const FONTS=[
+  {id:"georgia",    name:"Classic",    label:"Georgia",         css:"Georgia,'Times New Roman',serif",        ls:"0.5px"},
+  {id:"playfair",   name:"Elegant",    label:"Playfair Display",css:"'Playfair Display',Georgia,serif",       ls:"0.3px"},
+  {id:"cormorant",  name:"Refined",    label:"Cormorant",       css:"'Cormorant Garamond',Georgia,serif",     ls:"0.5px"},
+  {id:"baskerville",name:"Editorial",  label:"Libre Baskerville",css:"'Libre Baskerville',Georgia,serif",    ls:"0.2px"},
+  {id:"josefin",    name:"Modern",     label:"Josefin Sans",    css:"'Josefin Sans',sans-serif",              ls:"2px"},
+  {id:"mono",       name:"Technical",  label:"Courier New",     css:"'Courier New',monospace",                ls:"0px"},
 ];
 const SOCIALS=[
   {key:"linkedin", label:"LinkedIn", prefix:"linkedin.com/in/", color:"#0077B5", icon:"in"},
@@ -453,6 +486,8 @@ let isPro     = JSON.parse(localStorage.getItem("qardo_pro")||"false");
 let currentUser = null;
 let editId    = null;
 let editTpl   = "cotton";
+let editFont  = "georgia";
+let editLogo  = null;
 let screenStack= ["sc-home"];
 let activeTab = "home";
 let qrInstance= null;
@@ -471,6 +506,9 @@ function cleanRow(card, uid){
     xing:      card.xing||"",
     instagram: card.instagram||"",
     template:  card.template||"cotton",
+    font:      card.font||"georgia",
+    logo:      card.logo||"",
+    slug:      card.slug||"",
   };
 }
 
@@ -572,7 +610,8 @@ function goTab(tab){
 }
 
 // ── Font helper ────────────────────────────────────────────────────────────
-const ff=f=>f==="mono"?"'Courier New',monospace":"Georgia,serif";
+const ff=f=>{const font=FONTS.find(x=>x.id===f)||FONTS[0]; return font.css;};
+const fls=f=>{const font=FONTS.find(x=>x.id===f)||FONTS[0]; return font.ls;};
 const pat=p=>({
   lines:"repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px)",
   dots:"radial-gradient(circle,#fff 1px,transparent 1px)",
@@ -583,9 +622,11 @@ const pat=p=>({
 function buildCard(card,tplId,small){
   const s=small?0.78:1;
   const t=TEMPLATES.find(x=>x.id===tplId)||TEMPLATES[0];
+  const fontId=card.font||"georgia";
   const w=Math.round(310*s),h=Math.round(179*s);
-  const fN=Math.round((t.font==="mono"?14:18)*s);
-  const fS=Math.round((t.font==="mono"?7.5:9)*s);
+  const isMono=fontId==="mono";
+  const fN=Math.round((isMono?14:18)*s);
+  const fS=Math.round((isMono?7.5:9)*s);
   const fC=Math.round(8*s);
   const pl=Math.round(28*s),pv=Math.round(32*s);
   let patDiv="";
@@ -593,20 +634,23 @@ function buildCard(card,tplId,small){
     const bgsz=t.pat!=="lines"?"background-size:12px 12px;":"";
     patDiv=`<div style="position:absolute;inset:0;opacity:${t.pat==="lines"?0.04:t.pat==="dots"?0.08:0.06};background-image:${pat(t.pat)};${bgsz}"></div>`;
   }
+  // Logo top right
+  const logoEl=card.logo?`<img src="${card.logo}" style="position:absolute;top:${Math.round(10*s)}px;right:${Math.round(14*s)}px;max-height:${Math.round(22*s)}px;max-width:${Math.round(44*s)}px;object-fit:contain;z-index:3;opacity:0.85;" />`:
+    `<div style="position:absolute;top:${Math.round(10*s)}px;right:${Math.round(14*s)}px;font-size:${Math.round(9*s)}px;color:${t.sub};opacity:0.5;z-index:2;font-family:Georgia,serif;">✦</div>`;
   const contacts=[
-    card.email?`<div style="font-family:${ff(t.font)};font-size:${fC}px;color:${t.sub};margin-bottom:${Math.round(2.5*s)}px;">${card.email}</div>`:"",
-    card.phone?`<div style="font-family:${ff(t.font)};font-size:${fC}px;color:${t.sub};margin-bottom:${Math.round(2.5*s)}px;">${card.phone}</div>`:"",
-    card.website?`<div style="font-family:${ff(t.font)};font-size:${Math.round(7.5*s)}px;color:${t.accent};opacity:0.8;">${card.website}</div>`:"",
+    card.email?`<div style="font-family:${ff(fontId)};font-size:${fC}px;color:${t.sub};margin-bottom:${Math.round(2.5*s)}px;">${card.email}</div>`:"",
+    card.phone?`<div style="font-family:${ff(fontId)};font-size:${fC}px;color:${t.sub};margin-bottom:${Math.round(2.5*s)}px;">${card.phone}</div>`:"",
+    card.website?`<div style="font-family:${ff(fontId)};font-size:${Math.round(7.5*s)}px;color:${t.accent};opacity:0.8;">${card.website}</div>`:"",
   ].join("");
   return `<div style="width:${w}px;height:${h}px;background:${t.bg};border-radius:${Math.round(7*s)}px;position:relative;overflow:hidden;flex-shrink:0;box-shadow:${small?"0 3px 16px rgba(0,0,0,0.16)":"0 10px 40px rgba(0,0,0,0.22)"};border:1px solid ${t.border}33;">
     ${patDiv}
     <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(3.5*s)}px;background:${t.accent};z-index:2;"></div>
     <div style="position:absolute;top:${Math.round(24*s)}px;left:${Math.round(20*s)}px;right:${Math.round(20*s)}px;height:0.5px;background:${t.border};opacity:0.5;z-index:2;"></div>
     <div style="position:absolute;bottom:${Math.round(24*s)}px;left:${Math.round(20*s)}px;right:${Math.round(20*s)}px;height:0.5px;background:${t.border};opacity:0.5;z-index:2;"></div>
-    <div style="position:absolute;top:${Math.round(9*s)}px;right:${Math.round(13*s)}px;font-size:${Math.round(8.5*s)}px;color:${t.sub};opacity:0.6;z-index:2;font-family:Georgia,serif;">✦</div>
+    ${logoEl}
     <div style="position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;justify-content:center;padding:${pv}px ${Math.round(20*s)}px ${pv}px ${pl}px;">
-      <div style="font-family:${ff(t.font)};font-size:${fN}px;color:${t.text};letter-spacing:${t.font==="mono"?"-0.5px":"0.5px"};margin-bottom:${Math.round(2*s)}px;font-weight:normal;">${card.name||"Dein Name"}</div>
-      <div style="font-family:${ff(t.font)};font-size:${fS}px;color:${t.sub};letter-spacing:${t.font==="mono"?"0.5px":"2.5px"};text-transform:uppercase;margin-bottom:${Math.round(14*s)}px;">${card.title||""}${card.company?" · "+card.company:""}</div>
+      <div style="font-family:${ff(fontId)};font-size:${fN}px;color:${t.text};letter-spacing:${isMono?"-0.5px":fls(fontId)};margin-bottom:${Math.round(2*s)}px;font-weight:normal;">${card.name||"Dein Name"}</div>
+      <div style="font-family:${ff(fontId)};font-size:${fS}px;color:${t.sub};letter-spacing:${isMono?"0.5px":"2.5px"};text-transform:uppercase;margin-bottom:${Math.round(14*s)}px;">${card.title||""}${card.company?" · "+card.company:""}</div>
       ${contacts}
     </div>
   </div>`;
@@ -700,18 +744,24 @@ async function deleteCard(idx){
 function openShare(idx){
   const c=myCards[idx];
   if(!c) return;
-  const shareUrl=`${location.origin}${location.pathname}?card=${encodeURIComponent(JSON.stringify({name:c.name,title:c.title,company:c.company,email:c.email,phone:c.phone,website:c.website,template:c.template}))}`;
+  const cardData={name:c.name,title:c.title,company:c.company,email:c.email,phone:c.phone,website:c.website,template:c.template,font:c.font||"georgia",logo:c.logo||"",linkedin:c.linkedin||"",xing:c.xing||"",instagram:c.instagram||""};
+  const shareUrl=c.slug
+    ? `${location.origin}${location.pathname}?u=${c.slug}&card=${encodeURIComponent(JSON.stringify(cardData))}`
+    : `${location.origin}${location.pathname}?card=${encodeURIComponent(JSON.stringify(cardData))}`;
+  const displayUrl=c.slug?`qardo.app/${c.slug}`:shareUrl;
   document.getElementById("share-body").innerHTML=`
     <div class="fadein" style="margin-bottom:20px;">${buildCard(c,c.template,false)}</div>
+    ${c.slug?`<div style="background:#f5f3ee;border-radius:10px;padding:10px 14px;margin-bottom:16px;width:100%;text-align:center;">
+      <div style="font-size:10px;color:#aaa;letter-spacing:1.5px;text-transform:uppercase;font-family:Georgia,serif;margin-bottom:3px;">Deine persönliche URL</div>
+      <div style="font-size:14px;color:#1e3a28;font-family:Georgia,serif;font-weight:600;">qardo.app/${c.slug}</div>
+    </div>`:""}
     <div class="qr-box"><div id="qr-container"></div></div>
     <div style="margin-top:14px;font-size:13px;color:#7a6a55;font-family:Georgia,serif;text-align:center;line-height:1.6;">Kamera-App öffnen und scannen</div>
-    <div style="font-size:11px;color:#aaa;margin-top:4px;font-family:Georgia,serif;">${c.email||"Qardo.app"}</div>
-    <div class="btn-row" style="margin-top:20px;width:100%;">
-      <button class="btn btn-dark" onclick="copyLink('${shareUrl}')">Link kopieren</button>
+    <div class="btn-row" style="margin-top:16px;width:100%;">
+      <button class="btn btn-dark" onclick="copyLink('${shareUrl}')">🔗 Link kopieren</button>
       <button class="btn btn-light" onclick="shareNative('${shareUrl}','${c.name}')">Teilen via...</button>
     </div>`;
   goTo("sc-share");
-  // Generate real QR
   setTimeout(()=>{
     if(qrInstance){ qrInstance.clear(); qrInstance=null; }
     const el=document.getElementById("qr-container");
@@ -730,7 +780,7 @@ function shareNative(url,name){
 // ── Editor ─────────────────────────────────────────────────────────────────
 function newCard(){
   if(myCards.length>=1&&!isPro){ showPaywall(); return; }
-  editId=null; editTpl="cotton";
+  editId=null; editTpl="cotton"; editFont="georgia"; editLogo=null;
   document.getElementById("editor-title").textContent="Neue Karte";
   clearEditorFields();
   buildTplGrid("cotton");
@@ -741,7 +791,7 @@ function newCard(){
 function openEditor(idx){
   const c=myCards[idx];
   if(!c) return;
-  editId=idx; editTpl=c.template;
+  editId=idx; editTpl=c.template; editFont=c.font||"georgia"; editLogo=c.logo||null;
   document.getElementById("editor-title").textContent="Bearbeiten";
   document.getElementById("f-name").value=c.name||"";
   document.getElementById("f-title").value=c.title||"";
@@ -749,24 +799,55 @@ function openEditor(idx){
   document.getElementById("f-email").value=c.email||"";
   document.getElementById("f-phone").value=c.phone||"";
   document.getElementById("f-website").value=c.website||"";
+  document.getElementById("f-slug").value=c.slug||"";
   document.getElementById("f-linkedin").value=c.linkedin||"";
   document.getElementById("f-xing").value=c.xing||"";
   document.getElementById("f-instagram").value=c.instagram||"";
+  if(editLogo) document.getElementById("logo-preview").innerHTML=`<img src="${editLogo}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+  else document.getElementById("logo-preview").innerHTML="🏢";
   buildTplGrid(c.template);
   switchTab("design");
   livePreview();
   goTo("sc-editor");
 }
 function clearEditorFields(){
-  ["f-name","f-title","f-company","f-email","f-phone","f-website","f-linkedin","f-xing","f-instagram"].forEach(id=>document.getElementById(id).value="");
+  ["f-name","f-title","f-company","f-email","f-phone","f-website","f-slug","f-linkedin","f-xing","f-instagram"].forEach(id=>document.getElementById(id).value="");
+  editLogo=null;
+  document.getElementById("logo-preview").innerHTML="🏢";
+}
+function buildFontGrid(selId){
+  document.getElementById("font-grid").innerHTML=FONTS.map(f=>`
+    <div onclick="selectFont('${f.id}')" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;border:${f.id===selId?"2px solid #c8a96e":"1px solid #e8e0d0"};cursor:pointer;background:${f.id===selId?"#fdf9f4":"#fff"};">
+      <div style="font-family:${f.css};font-size:18px;color:#1a1a1a;flex:1;">${f.label}</div>
+      <div style="font-size:11px;color:#aaa;font-family:Georgia,serif;">${f.name}</div>
+    </div>`).join("");
+}
+function selectFont(id){ editFont=id; buildFontGrid(id); livePreview(); }
+function handleLogo(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    editLogo=e.target.result;
+    const prev=document.getElementById("logo-preview");
+    prev.innerHTML=`<img src="${editLogo}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+    livePreview();
+  };
+  reader.readAsDataURL(file);
+}
+function clearLogo(){
+  editLogo=null;
+  document.getElementById("logo-preview").innerHTML="🏢";
+  document.getElementById("f-logo").value="";
+  livePreview();
 }
 async function saveCard(){
   const name=document.getElementById("f-name").value.trim();
   if(!name){ toast("Name ist erforderlich"); return; }
+  const rawSlug=document.getElementById("f-slug").value.trim().toLowerCase().replace(/[^a-z0-9-]/g,"");
   const card={
     db_id: editId!==null?myCards[editId].db_id:null,
     id:    editId!==null?myCards[editId].id:Date.now(),
-    name, template:editTpl,
+    name, template:editTpl, font:editFont, logo:editLogo||"", slug:rawSlug,
     title:    document.getElementById("f-title").value.trim(),
     company:  document.getElementById("f-company").value.trim(),
     email:    document.getElementById("f-email").value.trim(),
@@ -802,21 +883,24 @@ function selectTpl(id){ editTpl=id; buildTplGrid(id); livePreview(); }
 
 // ── Tab switcher ───────────────────────────────────────────────────────────
 function switchTab(tab){
-  ["design","info","social"].forEach(t=>{
+  ["design","font","info","social"].forEach(t=>{
     document.getElementById("panel-"+t).style.display=t===tab?"block":"none";
     document.getElementById("tab-"+t).classList.toggle("active",t===tab);
   });
+  if(tab==="font") buildFontGrid(editFont);
 }
 
 // ── Live preview ───────────────────────────────────────────────────────────
 function livePreview(){
   const card={
-    name:    document.getElementById("f-name").value||"Dein Name",
-    title:   document.getElementById("f-title").value||"",
-    company: document.getElementById("f-company").value||"",
-    email:   document.getElementById("f-email").value||"",
-    phone:   document.getElementById("f-phone").value||"",
-    website: document.getElementById("f-website").value||"",
+    name:    document.getElementById("f-name")?.value||"Dein Name",
+    title:   document.getElementById("f-title")?.value||"",
+    company: document.getElementById("f-company")?.value||"",
+    email:   document.getElementById("f-email")?.value||"",
+    phone:   document.getElementById("f-phone")?.value||"",
+    website: document.getElementById("f-website")?.value||"",
+    font:    editFont,
+    logo:    editLogo||"",
   };
   document.getElementById("editor-preview").innerHTML=buildCard(card,editTpl,true);
 }
