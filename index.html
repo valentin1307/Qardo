@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Qardo — Business Cards</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Lato:wght@300;400&family=Libre+Baskerville:wght@400;700&family=Josefin+Sans:wght@300;400&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -744,24 +745,36 @@ function openShare(idx){
   if(!c) return;
   const cardData={name:c.name,title:c.title,company:c.company,email:c.email,phone:c.phone,website:c.website,template:c.template,font:c.font||"georgia",logo:c.logo||"",linkedin:c.linkedin||"",xing:c.xing||"",instagram:c.instagram||""};
   const shareUrl=`${location.origin}${location.pathname}?card=${encodeURIComponent(JSON.stringify(cardData))}`;
+  const urlDisplay=`${location.hostname}${c.slug?" / "+c.slug:""}`;
   document.getElementById("share-body").innerHTML=`
-    <div class="fadein" style="margin-bottom:20px;">${buildCard(c,c.template,false)}</div>
-    ${c.slug?`<div style="background:#f5f3ee;border-radius:10px;padding:10px 14px;margin-bottom:16px;width:100%;text-align:center;">
-      <div style="font-size:10px;color:#aaa;letter-spacing:1.5px;text-transform:uppercase;font-family:Georgia,serif;margin-bottom:3px;">Deine persönliche URL</div>
-      <div style="font-size:13px;color:#1e3a28;font-family:Georgia,serif;font-weight:600;">${location.hostname}/${c.slug}</div>
-    </div>`:""}
-    <div class="qr-box"><div id="qr-container"></div></div>
-    <div style="margin-top:14px;font-size:13px;color:#7a6a55;font-family:Georgia,serif;text-align:center;line-height:1.6;">Kamera-App öffnen und scannen</div>
-    <div class="btn-row" style="margin-top:16px;width:100%;">
+    <div class="fadein" style="margin-bottom:16px;">${buildCard(c,c.template,false)}</div>
+    <div style="background:#f5f3ee;border-radius:10px;padding:8px 14px;margin-bottom:14px;width:100%;text-align:center;">
+      <div style="font-size:9px;color:#aaa;letter-spacing:1.5px;text-transform:uppercase;font-family:Georgia,serif;margin-bottom:2px;">Dein Link</div>
+      <div style="font-size:12px;color:#1e3a28;font-family:Georgia,serif;word-break:break-all;">${urlDisplay}</div>
+    </div>
+    <div class="qr-box"><canvas id="qr-canvas" width="190" height="190"></canvas></div>
+    <div style="margin-top:12px;font-size:13px;color:#7a6a55;font-family:Georgia,serif;text-align:center;">Kamera-App öffnen und scannen</div>
+    <div class="btn-row" style="margin-top:14px;width:100%;">
       <button class="btn btn-dark" onclick="copyLink('${shareUrl}')">🔗 Link kopieren</button>
       <button class="btn btn-light" onclick="shareNative('${shareUrl}','${c.name}')">Teilen via...</button>
     </div>`;
   goTo("sc-share");
-  const el=document.getElementById("qr-container");
-  if(el){
-    const encoded=encodeURIComponent(shareUrl);
-    el.innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=190x190&margin=4&color=1a1a1a&bgcolor=ffffff&data=${encoded}" style="display:block;width:190px;height:190px;" alt="QR Code">`;
-  }
+  // Generate QR on canvas
+  setTimeout(()=>{
+    const canvas=document.getElementById("qr-canvas");
+    if(!canvas) return;
+    if(typeof QRCode!=="undefined"){
+      new QRCode(canvas.parentElement,{text:shareUrl,width:190,height:190,colorDark:"#1a1a1a",colorLight:"#ffffff"});
+      canvas.remove();
+    } else {
+      // Fallback: draw URL as text hint
+      const ctx=canvas.getContext("2d");
+      ctx.fillStyle="#f5f5f5"; ctx.fillRect(0,0,190,190);
+      ctx.fillStyle="#1a1a1a"; ctx.font="11px Georgia"; ctx.textAlign="center";
+      ctx.fillText("Link kopieren und",95,85);
+      ctx.fillText("teilen ↓",95,105);
+    }
+  },300);
 }
 
 function copyLink(url){
