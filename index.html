@@ -367,12 +367,12 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
         <div class="form-group"><label class="form-label">Telefon</label><input class="form-input" id="f-phone" type="tel" placeholder="+43 664 123 456" oninput="livePreview()"></div>
         <div class="form-group"><label class="form-label">Website</label><input class="form-input" id="f-website" type="url" placeholder="https://firma.at" oninput="livePreview()"></div>
         <div class="form-group">
-          <label class="form-label">Deine persönliche URL</label>
+          <label class="form-label">Dein Kürzel (für später)</label>
           <div style="display:flex;align-items:center;border:0.5px solid #d8d0c0;border-radius:10px;overflow:hidden;background:#fff;">
-            <span style="padding:12px 10px;font-size:12px;color:#aaa;font-family:Georgia,serif;white-space:nowrap;border-right:0.5px solid #e8e0d0;">qardo.app/</span>
+            <span style="padding:12px 10px;font-size:12px;color:#aaa;font-family:Georgia,serif;white-space:nowrap;border-right:0.5px solid #e8e0d0;">deinname.app/</span>
             <input style="flex:1;border:none;padding:12px 10px;font-size:14px;font-family:Georgia,serif;outline:none;" id="f-slug" placeholder="deinname" oninput="livePreview()">
           </div>
-          <div style="font-size:10px;color:#aaa;margin-top:5px;font-family:Georgia,serif;">Nur Buchstaben, Zahlen und Bindestriche</div>
+          <div style="font-size:10px;color:#aaa;margin-top:5px;font-family:Georgia,serif;">Wird aktiv sobald eine eigene Domain verbunden ist</div>
         </div>
         <div class="form-group">
           <label class="form-label">Firmenlogo (optional)</label>
@@ -743,15 +743,12 @@ function openShare(idx){
   const c=myCards[idx];
   if(!c) return;
   const cardData={name:c.name,title:c.title,company:c.company,email:c.email,phone:c.phone,website:c.website,template:c.template,font:c.font||"georgia",logo:c.logo||"",linkedin:c.linkedin||"",xing:c.xing||"",instagram:c.instagram||""};
-  const shareUrl=c.slug
-    ? `${location.origin}${location.pathname}?u=${c.slug}&card=${encodeURIComponent(JSON.stringify(cardData))}`
-    : `${location.origin}${location.pathname}?card=${encodeURIComponent(JSON.stringify(cardData))}`;
-  const displayUrl=c.slug?`qardo.app/${c.slug}`:shareUrl;
+  const shareUrl=`${location.origin}${location.pathname}?card=${encodeURIComponent(JSON.stringify(cardData))}`;
   document.getElementById("share-body").innerHTML=`
     <div class="fadein" style="margin-bottom:20px;">${buildCard(c,c.template,false)}</div>
     ${c.slug?`<div style="background:#f5f3ee;border-radius:10px;padding:10px 14px;margin-bottom:16px;width:100%;text-align:center;">
       <div style="font-size:10px;color:#aaa;letter-spacing:1.5px;text-transform:uppercase;font-family:Georgia,serif;margin-bottom:3px;">Deine persönliche URL</div>
-      <div style="font-size:14px;color:#1e3a28;font-family:Georgia,serif;font-weight:600;">qardo.app/${c.slug}</div>
+      <div style="font-size:13px;color:#1e3a28;font-family:Georgia,serif;font-weight:600;">${location.hostname}/${c.slug}</div>
     </div>`:""}
     <div class="qr-box"><div id="qr-container"></div></div>
     <div style="margin-top:14px;font-size:13px;color:#7a6a55;font-family:Georgia,serif;text-align:center;line-height:1.6;">Kamera-App öffnen und scannen</div>
