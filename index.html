@@ -132,23 +132,30 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 .social-handle{font-size:13px;color:#1a5aaa;font-family:Georgia,serif;}
 
 /* ── Auth screen ── */
-.auth-wrap{width:100%;max-width:390px;min-height:100vh;background:var(--g);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;}
-.auth-logo{text-align:center;margin-bottom:40px;}
-.auth-logo-icon{width:72px;height:72px;border-radius:18px;background:#2a4e36;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;overflow:hidden;position:relative;}
-.auth-logo-card{width:44px;height:28px;background:#faf7f0;border-radius:4px;position:relative;transform:rotate(-8deg);}
-.auth-logo-bar{position:absolute;left:0;top:0;bottom:0;width:5px;background:#c8a96e;border-radius:2px;}
-.auth-name{font-size:28px;font-weight:700;color:#faf7f0;font-family:Georgia,serif;letter-spacing:-0.5px;}
-.auth-sub{font-size:11px;color:#c8a96e;letter-spacing:2px;text-transform:uppercase;font-family:Georgia,serif;margin-top:4px;}
-.auth-card{background:rgba(255,255,255,0.06);border-radius:20px;padding:28px 24px;width:100%;border:0.5px solid rgba(255,255,255,0.1);}
-.auth-tab-row{display:flex;margin-bottom:24px;background:rgba(0,0,0,0.2);border-radius:10px;padding:3px;}
-.auth-tab{flex:1;padding:8px;font-size:13px;font-family:Georgia,serif;text-align:center;border:none;background:transparent;color:rgba(255,255,255,0.5);cursor:pointer;border-radius:8px;transition:all 0.2s;}
-.auth-tab.active{background:rgba(255,255,255,0.12);color:#faf7f0;}
-.auth-input{width:100%;background:rgba(255,255,255,0.08);border:0.5px solid rgba(255,255,255,0.15);border-radius:12px;padding:14px 16px;font-size:15px;font-family:Georgia,serif;color:#faf7f0;outline:none;margin-bottom:12px;}
-.auth-input::placeholder{color:rgba(255,255,255,0.3);}
-.auth-input:focus{border-color:#c8a96e;}
-.auth-btn{width:100%;padding:14px;border-radius:12px;background:#c8a96e;color:#1a1a1a;font-size:15px;font-family:Georgia,serif;font-weight:600;border:none;cursor:pointer;margin-top:4px;}
-.auth-err{font-size:12px;color:#f08080;font-family:Georgia,serif;text-align:center;margin-bottom:10px;min-height:18px;}
-.auth-footer{margin-top:24px;font-size:11px;color:rgba(255,255,255,0.25);font-family:Georgia,serif;text-align:center;line-height:1.6;}
+.auth-wrap{width:100%;max-width:390px;min-height:100vh;background:linear-gradient(160deg,#0d1f12 0%,#1e3a28 60%,#0d1f12 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 24px;}
+
+/* Logo above card */
+.auth-brand{display:flex;align-items:center;gap:10px;margin-bottom:32px;}
+.auth-brand-icon{width:38px;height:38px;border-radius:10px;background:#2a4e36;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+.auth-brand-card{width:24px;height:15px;background:#faf7f0;border-radius:2px;position:relative;transform:rotate(-8deg);}
+.auth-brand-bar{position:absolute;left:0;top:0;bottom:0;width:3px;background:#c8a96e;border-radius:1px;}
+.auth-brand-name{font-size:22px;font-weight:700;color:#faf7f0;font-family:Georgia,serif;letter-spacing:-0.5px;}
+.auth-brand-tag{font-size:9px;color:#c8a96e;letter-spacing:2px;text-transform:uppercase;font-family:Georgia,serif;}
+
+/* The card itself */
+.bigcard{width:100%;perspective:1200px;}
+.bigcard-inner{position:relative;transform-style:preserve-3d;transition:transform 0.65s cubic-bezier(.4,0,.2,1);}
+.bigcard-inner.flipped{transform:rotateY(180deg);}
+.bigcard-front,.bigcard-back{border-radius:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.4);}
+.bigcard-back{position:absolute;inset:0;transform:rotateY(180deg);}
+
+/* Inputs */
+.ci{width:100%;background:rgba(0,0,0,0.05);border:0.5px solid #d8d0c0;border-radius:9px;padding:12px 14px;font-size:14px;font-family:Georgia,serif;color:#1a1a1a;outline:none;margin-bottom:10px;transition:border-color 0.2s;}
+.ci::placeholder{color:#aaa;}
+.ci:focus{border-color:#1e3a28;}
+.cb{width:100%;padding:13px;border-radius:9px;font-size:14px;font-family:Georgia,serif;font-weight:600;border:none;cursor:pointer;}
+.auth-err{font-size:11px;color:#c04040;font-family:Georgia,serif;min-height:16px;margin-bottom:6px;}
+.auth-footer{margin-top:20px;font-size:10px;color:rgba(255,255,255,0.18);font-family:Georgia,serif;text-align:center;}
 
 /* ── Animations ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
@@ -163,25 +170,80 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 
 <!-- ══ AUTH ══ -->
 <div class="auth-wrap" id="auth-wrap">
-  <div class="auth-logo">
-    <div class="auth-logo-icon">
-      <div class="auth-logo-card"><div class="auth-logo-bar"></div></div>
+
+  <!-- Brand -->
+  <div class="auth-brand">
+    <div class="auth-brand-icon">
+      <div class="auth-brand-card"><div class="auth-brand-bar"></div></div>
     </div>
-    <div class="auth-name">Qardo</div>
-    <div class="auth-sub">Business Cards</div>
-  </div>
-  <div class="auth-card">
-    <div class="auth-tab-row">
-      <button class="auth-tab active" id="atab-login" onclick="authTab('login')">Anmelden</button>
-      <button class="auth-tab" id="atab-register" onclick="authTab('register')">Registrieren</button>
+    <div>
+      <div class="auth-brand-name">Qardo</div>
+      <div class="auth-brand-tag">Business Cards</div>
     </div>
-    <div class="auth-err" id="auth-err"></div>
-    <div id="auth-name-wrap" style="display:none;"><input class="auth-input" id="auth-name" placeholder="Dein Name" autocomplete="name"></div>
-    <input class="auth-input" id="auth-email" type="email" placeholder="E-Mail" autocomplete="email">
-    <input class="auth-input" id="auth-pw" type="password" placeholder="Passwort" autocomplete="current-password">
-    <button class="auth-btn" id="auth-submit" onclick="doAuth()">Anmelden</button>
   </div>
-  <div class="auth-footer">Qardo v1.0 · Deine Daten bleiben auf deinem Gerät</div>
+
+  <!-- Card with flip -->
+  <div class="bigcard">
+    <div class="bigcard-inner" id="bigcard-inner">
+
+      <!-- FRONT: Login -->
+      <div class="bigcard-front" style="background:#faf8f4;border:1px solid #e0d8c8;">
+        <!-- lines texture -->
+        <div style="position:absolute;inset:0;opacity:0.04;background-image:repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px);pointer-events:none;"></div>
+        <!-- accent bar -->
+        <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#1e3a28;"></div>
+        <!-- top rule -->
+        <div style="position:absolute;top:52px;left:20px;right:20px;height:0.5px;background:#c8b99a;opacity:0.6;"></div>
+        <!-- ornament -->
+        <div style="position:absolute;top:10px;right:16px;font-size:10px;color:#7a6a55;opacity:0.5;font-family:Georgia,serif;">✦</div>
+
+        <div style="padding:20px 20px 22px 26px;">
+          <!-- Card header -->
+          <div style="margin-bottom:18px;">
+            <div style="font-family:Georgia,serif;font-size:20px;color:#1a1a1a;letter-spacing:0.3px;margin-bottom:2px;">Willkommen zurück</div>
+            <div style="font-family:Georgia,serif;font-size:8.5px;color:#7a6a55;letter-spacing:2.5px;text-transform:uppercase;">Qardo · Business Cards</div>
+          </div>
+          <!-- Fields -->
+          <div class="auth-err" id="auth-err"></div>
+          <input class="ci" id="auth-email" type="email" placeholder="E-Mail" autocomplete="email">
+          <input class="ci" id="auth-pw" type="password" placeholder="Passwort" autocomplete="current-password">
+          <button class="cb" onclick="doAuth()" style="background:#1e3a28;color:#faf7f0;margin-top:2px;">Anmelden</button>
+          <!-- Switch -->
+          <div style="text-align:center;margin-top:14px;">
+            <span style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;">Noch kein Konto? </span>
+            <span onclick="flipCard()" style="font-size:12px;color:#1e3a28;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">Registrieren</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BACK: Register -->
+      <div class="bigcard-back" style="background:#faf8f4;border:1px solid #e0d8c8;">
+        <div style="position:absolute;inset:0;opacity:0.04;background-image:repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px);pointer-events:none;"></div>
+        <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#c8a96e;"></div>
+        <div style="position:absolute;top:52px;left:20px;right:20px;height:0.5px;background:#c8b99a;opacity:0.6;"></div>
+        <div style="position:absolute;top:10px;right:16px;font-size:10px;color:#7a6a55;opacity:0.5;font-family:Georgia,serif;">✦</div>
+
+        <div style="padding:20px 20px 22px 26px;">
+          <div style="margin-bottom:18px;">
+            <div style="font-family:Georgia,serif;font-size:20px;color:#1a1a1a;letter-spacing:0.3px;margin-bottom:2px;">Konto erstellen</div>
+            <div style="font-family:Georgia,serif;font-size:8.5px;color:#7a6a55;letter-spacing:2.5px;text-transform:uppercase;">Qardo · Business Cards</div>
+          </div>
+          <div class="auth-err" id="auth-err-back"></div>
+          <input class="ci" id="auth-name" placeholder="Dein Name" autocomplete="name">
+          <input class="ci" id="auth-email-back" type="email" placeholder="E-Mail" autocomplete="email">
+          <input class="ci" id="auth-pw-back" type="password" placeholder="Passwort (min. 6 Zeichen)">
+          <button class="cb" onclick="doRegister()" style="background:#c8a96e;color:#1a1a1a;margin-top:2px;">Registrieren</button>
+          <div style="text-align:center;margin-top:14px;">
+            <span style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;">Schon ein Konto? </span>
+            <span onclick="flipCard()" style="font-size:12px;color:#1e3a28;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">Anmelden</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="auth-footer">Qardo v1.1 · Deine Daten bleiben auf deinem Gerät</div>
 </div>
 
 <div class="phone-wrap" id="app-wrap" style="display:none;">
@@ -761,15 +823,10 @@ function updateProfile(){
 }
 
 // ── Auth ───────────────────────────────────────────────────────────────────
-let authMode="login";
-
-function authTab(mode){
-  authMode=mode;
-  document.getElementById("atab-login").classList.toggle("active",mode==="login");
-  document.getElementById("atab-register").classList.toggle("active",mode==="register");
-  document.getElementById("auth-name-wrap").style.display=mode==="register"?"block":"none";
-  document.getElementById("auth-submit").textContent=mode==="login"?"Anmelden":"Konto erstellen";
+function flipCard(){
+  document.getElementById("bigcard-inner").classList.toggle("flipped");
   document.getElementById("auth-err").textContent="";
+  document.getElementById("auth-err-back").textContent="";
 }
 
 function doAuth(){
@@ -777,23 +834,26 @@ function doAuth(){
   const pw=document.getElementById("auth-pw").value;
   const err=document.getElementById("auth-err");
   if(!email||!pw){err.textContent="Bitte alle Felder ausfüllen.";return;}
+  const raw=localStorage.getItem("qardo_user_"+email);
+  if(!raw){err.textContent="Kein Konto gefunden — bitte registrieren.";return;}
+  const user=JSON.parse(raw);
+  if(user.pw!==pw){err.textContent="Falsches Passwort.";return;}
+  localStorage.setItem("qardo_session",email);
+  startApp(user);
+}
+
+function doRegister(){
+  const name=document.getElementById("auth-name").value.trim();
+  const email=document.getElementById("auth-email-back").value.trim();
+  const pw=document.getElementById("auth-pw-back").value;
+  const err=document.getElementById("auth-err-back");
+  if(!name||!email||!pw){err.textContent="Bitte alle Felder ausfüllen.";return;}
   if(pw.length<6){err.textContent="Passwort mindestens 6 Zeichen.";return;}
-  if(authMode==="register"){
-    const name=document.getElementById("auth-name").value.trim();
-    if(!name){err.textContent="Bitte Namen eingeben.";return;}
-    if(localStorage.getItem("qardo_user_"+email)){err.textContent="E-Mail bereits registriert.";return;}
-    const user={email,pw,name};
-    localStorage.setItem("qardo_user_"+email,JSON.stringify(user));
-    localStorage.setItem("qardo_session",email);
-    startApp(user);
-  } else {
-    const raw=localStorage.getItem("qardo_user_"+email);
-    if(!raw){err.textContent="Kein Konto mit dieser E-Mail.";return;}
-    const user=JSON.parse(raw);
-    if(user.pw!==pw){err.textContent="Falsches Passwort.";return;}
-    localStorage.setItem("qardo_session",email);
-    startApp(user);
-  }
+  if(localStorage.getItem("qardo_user_"+email)){err.textContent="E-Mail bereits registriert.";return;}
+  const user={email,pw,name};
+  localStorage.setItem("qardo_user_"+email,JSON.stringify(user));
+  localStorage.setItem("qardo_session",email);
+  startApp(user);
 }
 
 function startApp(user){
@@ -814,7 +874,7 @@ function logout(){
   document.getElementById("auth-email").value="";
   document.getElementById("auth-pw").value="";
   document.getElementById("auth-err").textContent="";
-  authTab("login");
+  document.getElementById("bigcard-inner").classList.remove("flipped");
 }
 
 function checkSession(){
