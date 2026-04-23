@@ -762,11 +762,19 @@ function openShare(idx){
       <button class="btn btn-light" onclick="shareNative('${shareUrl}','${c.name}')">Teilen via...</button>
     </div>`;
   goTo("sc-share");
-  setTimeout(()=>{
-    if(qrInstance){ qrInstance.clear(); qrInstance=null; }
+  function tryQR(attempts){
     const el=document.getElementById("qr-container");
-    if(el) qrInstance=new QRCode(el,{text:shareUrl,width:190,height:190,colorDark:"#1a1a1a",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});
-  },100);
+    if(!el) return;
+    if(typeof QRCode==="undefined"){
+      if(attempts>0) setTimeout(()=>tryQR(attempts-1),200);
+      return;
+    }
+    if(qrInstance){ try{qrInstance.clear();}catch(e){} qrInstance=null; }
+    el.innerHTML="";
+    try{ qrInstance=new QRCode(el,{text:shareUrl,width:190,height:190,colorDark:"#1a1a1a",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M}); }
+    catch(e){ console.error("QR error:",e); }
+  }
+  setTimeout(()=>tryQR(10),150);
 }
 
 function copyLink(url){
@@ -944,11 +952,13 @@ function hidePaywall(e){ if(!e||e.target===document.getElementById("paywall")) d
 function checkIncoming(){
   const params=new URLSearchParams(location.search);
   const raw=params.get("card");
-  if(!raw) return;
+  if(!raw) return false;
   try{
     const c=JSON.parse(decodeURIComponent(raw));
-    if(!c.name) return;
-    // Show incoming card view
+    if(!c.name) return false;
+    // Show card immediately — hide auth, show app shell with card view
+    document.getElementById("auth-wrap").style.display="none";
+    document.getElementById("app-wrap").style.display="flex";
     document.querySelector(".phone-wrap").innerHTML=`
       <div class="status"><span class="status-time">${new Date().getHours()}:${String(new Date().getMinutes()).padStart(2,"0")}</span><span class="status-icons">●●● 🔋</span></div>
       <div style="flex:1;overflow-y:auto;padding:20px;background:#f5f3ee;display:flex;flex-direction:column;align-items:center;">
@@ -963,12 +973,13 @@ function checkIncoming(){
           <div style="text-align:center;padding:20px;background:#fff;border-radius:14px;border:1px solid var(--gold);">
             <div style="font-size:13px;font-weight:600;color:#1a1a1a;font-family:Georgia,serif;margin-bottom:6px;">Karte speichern</div>
             <div style="font-size:12px;color:#7a6a55;margin-bottom:14px;line-height:1.5;">Lade Qardo um diese Karte zu speichern und deine eigene zu erstellen.</div>
-            <a href="${location.origin}${location.pathname}" class="btn btn-dark" style="display:block;text-decoration:none;">Qardo öffnen ↗</a>
+            <a href="${location.origin}${location.pathname}" style="display:block;padding:13px;border-radius:12px;background:#1e3a28;color:#faf7f0;font-size:14px;font-family:Georgia,serif;text-align:center;text-decoration:none;">Qardo kostenlos laden ↗</a>
           </div>
         </div>
       </div>
       <div class="home-ind"><div class="home-bar"></div></div>`;
-  }catch(e){ console.error(e); }
+    return true;
+  }catch(e){ console.error(e); return false; }
 }
 
 // ── Profile ────────────────────────────────────────────────────────────────
@@ -1016,12 +1027,15 @@ async function doRegister(){
 
 async function startApp(user){
   currentUser=user;
-  await loadFromDB();
+  // Show app immediately with loading state
   document.getElementById("auth-wrap").style.display="none";
   document.getElementById("app-wrap").style.display="flex";
   const name=user.user_metadata?.name||user.email;
   document.getElementById("profile-name").textContent=name;
   document.getElementById("profile-email").textContent=user.email;
+  // Show skeleton while loading
+  document.getElementById("home-body").innerHTML=`<div style="padding:20px;text-align:center;color:#aaa;font-family:Georgia,serif;font-size:13px;margin-top:40px;">Karten werden geladen ✦</div>`;
+  await loadFromDB();
   renderHome();
   renderWallet();
   updateProfile();
@@ -1047,11 +1061,15 @@ async function checkSession(){
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
-checkIncoming();
-(async()=>{
-  const ok = await checkSession();
-  if(!ok){ renderHome(); renderWallet(); updateProfile(); }
-})();
+// If sharing URL — show card immediately, no login needed
+if(checkIncoming()){
+  // done — card view shown, no further init needed
+} else {
+  (async()=>{
+    const ok = await checkSession();
+    if(!ok){ renderHome(); renderWallet(); updateProfile(); }
+  })();
+}
 </script>
 </body>
 </html>
