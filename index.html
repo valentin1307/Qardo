@@ -8,6 +8,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Qardo">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="favicon.png">
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Lato:wght@300;400&family=Libre+Baskerville:wght@400;700&family=Josefin+Sans:wght@300;400&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -209,6 +211,9 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
         <span style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;">Noch kein Konto? </span>
         <span onclick="showRegister()" style="font-size:12px;color:#1e3a28;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">Registrieren</span>
       </div>
+      <div style="text-align:center;margin-top:8px;">
+        <span onclick="showReset()" style="font-size:11px;color:#aaa;font-family:Georgia,serif;cursor:pointer;text-decoration:underline;">Passwort vergessen?</span>
+      </div>
     </div>
   </div>
 
@@ -231,6 +236,27 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
       <div style="text-align:center;margin-top:14px;">
         <span style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;">Schon ein Konto? </span>
         <span onclick="showLogin()" style="font-size:12px;color:#1e3a28;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">Anmelden</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESET PASSWORD CARD -->
+  <div id="card-reset" style="display:none;width:100%;background:#faf8f4;border:1px solid #e0d8c8;border-radius:12px;position:relative;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.3);">
+    <div style="position:absolute;inset:0;opacity:0.04;background-image:repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px);pointer-events:none;"></div>
+    <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#1e3a28;border-radius:12px 0 0 12px;"></div>
+    <div style="position:absolute;top:52px;left:20px;right:20px;height:0.5px;background:#c8b99a;opacity:0.6;"></div>
+    <div style="position:absolute;top:10px;right:16px;font-size:10px;color:#7a6a55;opacity:0.5;font-family:Georgia,serif;">✦</div>
+    <div style="padding:20px 20px 22px 26px;">
+      <div style="margin-bottom:18px;">
+        <div style="font-family:Georgia,serif;font-size:20px;color:#1a1a1a;letter-spacing:0.3px;margin-bottom:2px;">Passwort zurücksetzen</div>
+        <div style="font-family:Georgia,serif;font-size:8.5px;color:#7a6a55;letter-spacing:2.5px;text-transform:uppercase;">Qardo · Business Cards</div>
+      </div>
+      <div style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;line-height:1.6;margin-bottom:14px;">Gib deine E-Mail-Adresse ein. Du erhältst einen Link zum Zurücksetzen deines Passworts.</div>
+      <div class="auth-err" id="auth-err-reset"></div>
+      <input class="ci" id="auth-email-reset" type="email" placeholder="E-Mail" autocomplete="email">
+      <button class="cb" onclick="doReset()" style="background:#1e3a28;color:#faf7f0;margin-top:2px;">Link senden</button>
+      <div style="text-align:center;margin-top:14px;">
+        <span onclick="showLogin()" style="font-size:12px;color:#1e3a28;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">← Zurück zum Login</span>
       </div>
     </div>
   </div>
@@ -1002,13 +1028,35 @@ function checkIncoming(){
           <div style="text-align:center;padding:20px;background:#fff;border-radius:14px;border:1px solid var(--gold);">
             <div style="font-size:13px;font-weight:600;color:#1a1a1a;font-family:Georgia,serif;margin-bottom:6px;">Karte speichern</div>
             <div style="font-size:12px;color:#7a6a55;margin-bottom:14px;line-height:1.5;">Lade Qardo um diese Karte zu speichern und deine eigene zu erstellen.</div>
-            <a href="${location.origin}${location.pathname}" style="display:block;padding:13px;border-radius:12px;background:#1e3a28;color:#faf7f0;font-size:14px;font-family:Georgia,serif;text-align:center;text-decoration:none;">Qardo kostenlos laden ↗</a>
+            <button onclick="saveToWalletFromURL()" style="display:block;width:100%;padding:13px;border-radius:12px;background:#1e3a28;color:#faf7f0;font-size:14px;font-family:Georgia,serif;text-align:center;border:none;cursor:pointer;margin-bottom:10px;">In Wallet speichern ✦</button>
+            <a href="${location.origin}${location.pathname}" style="display:block;padding:13px;border-radius:12px;background:#f5f3ee;color:#1e3a28;font-size:14px;font-family:Georgia,serif;text-align:center;text-decoration:none;border:0.5px solid #e0d8c0;">Qardo öffnen ↗</a>
           </div>
         </div>
       </div>
       <div class="home-ind"><div class="home-bar"></div></div>`;
     return true;
   }catch(e){ console.error(e); return false; }
+}
+
+// ── Save incoming card to wallet ──────────────────────────────────────────
+async function saveToWalletFromURL(){
+  const params=new URLSearchParams(location.search);
+  const raw=params.get("card");
+  if(!raw) return;
+  try{
+    const c=JSON.parse(decodeURIComponent(raw));
+    if(!currentUser){
+      // Not logged in — redirect to app with card param preserved
+      window.location.href=location.origin+location.pathname+"?card="+encodeURIComponent(raw)+"&save=1";
+      return;
+    }
+    c.saved_at=new Date().toISOString();
+    await saveWalletToDB(c);
+    wallet.push(c);
+    toast("Karte gespeichert ✦");
+    // Go to app wallet
+    setTimeout(()=>{ window.location.href=location.origin+location.pathname; },1200);
+  }catch(e){toast("Fehler beim Speichern");}
 }
 
 // ── Profile ────────────────────────────────────────────────────────────────
@@ -1032,9 +1080,29 @@ function showRegister(){
 }
 function showLogin(){
   document.getElementById("card-register").style.display="none";
+  document.getElementById("card-reset").style.display="none";
   document.getElementById("card-login").style.display="block";
   document.getElementById("auth-err").textContent="";
   document.getElementById("auth-err-back").textContent="";
+}
+function showReset(){
+  document.getElementById("card-login").style.display="none";
+  document.getElementById("card-register").style.display="none";
+  document.getElementById("card-reset").style.display="block";
+  document.getElementById("auth-err-reset").textContent="";
+}
+async function doReset(){
+  const email=document.getElementById("auth-email-reset").value.trim();
+  const err=document.getElementById("auth-err-reset");
+  if(!email){err.textContent="Bitte E-Mail eingeben.";return;}
+  err.style.color="#1e3a28";
+  err.textContent="Link wird gesendet...";
+  const {error}=await supa.auth.resetPasswordForEmail(email,{
+    redirectTo: location.origin+location.pathname
+  });
+  if(error){err.style.color="#c04040";err.textContent="Fehler: "+error.message;return;}
+  err.style.color="#1e3a28";
+  err.textContent="✦ Link gesendet! Bitte prüfe deine E-Mails.";
 }
 function flipCard(){ showRegister(); }
 
