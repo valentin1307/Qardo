@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Lato:wght@300;400&family=Libre+Baskerville:wght@400;700&family=Josefin+Sans:wght@300;400&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -170,6 +171,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 /* ── Animations ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
 .fadein{animation:fadeUp 0.4s ease forwards;}
+@keyframes scanline{0%{top:12px;}50%{top:calc(100% - 14px);}100%{top:12px;}}
 
 /* ── Toast ── */
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-family:Georgia,serif;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;}
@@ -422,6 +424,29 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
     <div class="home-ind"><div class="home-bar"></div></div>
   </div>
 
+  <!-- ══ QR SCANNER ══ -->
+  <div class="screen" id="sc-scanner">
+    <div class="back-row">
+      <button class="back-btn" onclick="stopScanner();goBack()">‹</button>
+      <div class="back-title">QR-Code scannen</div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;background:#0a0a0a;">
+      <div style="position:relative;width:260px;height:260px;border-radius:16px;overflow:hidden;background:#000;">
+        <video id="scanner-video" style="width:100%;height:100%;object-fit:cover;" playsinline autoplay muted></video>
+        <canvas id="scanner-canvas" style="display:none;"></canvas>
+        <!-- Corner markers -->
+        <div style="position:absolute;top:12px;left:12px;width:30px;height:30px;border-top:3px solid #c8a96e;border-left:3px solid #c8a96e;border-radius:4px 0 0 0;"></div>
+        <div style="position:absolute;top:12px;right:12px;width:30px;height:30px;border-top:3px solid #c8a96e;border-right:3px solid #c8a96e;border-radius:0 4px 0 0;"></div>
+        <div style="position:absolute;bottom:12px;left:12px;width:30px;height:30px;border-bottom:3px solid #c8a96e;border-left:3px solid #c8a96e;border-radius:0 0 0 4px;"></div>
+        <div style="position:absolute;bottom:12px;right:12px;width:30px;height:30px;border-bottom:3px solid #c8a96e;border-right:3px solid #c8a96e;border-radius:0 0 4px 0;"></div>
+        <!-- Scan line -->
+        <div id="scan-line" style="position:absolute;left:12px;right:12px;height:2px;background:linear-gradient(90deg,transparent,#c8a96e,transparent);top:50%;animation:scanline 2s infinite;"></div>
+      </div>
+      <div id="scanner-status" style="margin-top:20px;font-size:13px;color:#aaa;font-family:Georgia,serif;text-align:center;line-height:1.6;">Kamera auf QR-Code richten</div>
+      <div id="scanner-result" style="display:none;width:100%;margin-top:16px;"></div>
+    </div>
+  </div>
+
   <!-- ══ WALLET DETAIL ══ -->
   <div class="screen" id="sc-wallet-detail">
     <div class="back-row">
@@ -454,7 +479,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
     <div style="font-size:12px;color:#4a4030;font-family:Georgia,serif;margin-bottom:5px;">✦ Unbegrenzte Visitenkarten</div>
     <div style="font-size:12px;color:#4a4030;font-family:Georgia,serif;margin-bottom:5px;">✦ Alle 8 Design-Vorlagen</div>
     <div style="font-size:12px;color:#4a4030;font-family:Georgia,serif;margin-bottom:16px;">✦ LinkedIn, Xing & Instagram</div>
-    <button class="btn btn-dark" style="margin-bottom:10px;">Jetzt upgraden</button>
+    <button class="btn btn-dark" onclick="upgradeToPro();hidePaywall();" style="margin-bottom:10px;">Jetzt upgraden</button>
     <button class="btn btn-light" onclick="hidePaywall()">Vielleicht später</button>
   </div>
 </div>
@@ -498,7 +523,7 @@ const supa = supabase.createClient(SUPA_URL, SUPA_KEY, {
 // ── State ──────────────────────────────────────────────────────────────────
 let myCards   = [];
 let wallet    = [];
-let isPro     = JSON.parse(localStorage.getItem("qardo_pro")||"false");
+let isPro     = false; // loaded from Supabase user metadata
 let currentUser = null;
 let editId    = null;
 let editTpl   = "cotton";
@@ -572,7 +597,7 @@ async function deleteWalletFromDB(dbId){
 
 // ── Save (legacy local fallback) ───────────────────────────────────────────
 function save(){
-  localStorage.setItem("qardo_pro", JSON.stringify(isPro));
+  // isPro stored in Supabase, not locally
 }
 
 // ── Clock ──────────────────────────────────────────────────────────────────
@@ -1172,6 +1197,8 @@ async function doRegister(){
 
 async function startApp(user){
   currentUser=user;
+  // Load isPro from user metadata
+  isPro = user.user_metadata?.is_pro === true;
   // Show app immediately with loading state
   document.getElementById("auth-wrap").style.display="none";
   document.getElementById("app-wrap").style.display="flex";
@@ -1185,6 +1212,13 @@ async function startApp(user){
   renderWallet();
   updateProfile();
   checkPendingCard();
+}
+
+async function upgradeToPro(){
+  if(!currentUser) return;
+  // In production this would be after payment — for now simulate
+  const {data,error} = await supa.auth.updateUser({data:{is_pro:true}});
+  if(!error){ isPro=true; renderHome(); updateProfile(); toast("✦ Upgrade erfolgreich!"); }
 }
 
 async function logout(){
@@ -1204,6 +1238,94 @@ async function checkSession(){
   if(!session)return false;
   await startApp(session.user);
   return true;
+}
+
+// ── QR Scanner ────────────────────────────────────────────────────────────
+let scannerStream = null;
+let scannerInterval = null;
+
+function openScanner(){
+  goTo("sc-scanner");
+  document.getElementById("scanner-result").style.display="none";
+  document.getElementById("scanner-status").textContent="Kamera wird gestartet...";
+  navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}})
+    .then(stream=>{
+      scannerStream=stream;
+      const video=document.getElementById("scanner-video");
+      video.srcObject=stream;
+      video.play();
+      document.getElementById("scanner-status").textContent="Kamera auf QR-Code richten";
+      startScanLoop();
+    })
+    .catch(err=>{
+      document.getElementById("scanner-status").textContent="Kamera nicht verfügbar. Bitte Berechtigung erteilen.";
+    });
+}
+
+function stopScanner(){
+  if(scannerStream){ scannerStream.getTracks().forEach(t=>t.stop()); scannerStream=null; }
+  if(scannerInterval){ clearInterval(scannerInterval); scannerInterval=null; }
+}
+
+function startScanLoop(){
+  const video=document.getElementById("scanner-video");
+  const canvas=document.getElementById("scanner-canvas");
+  const ctx=canvas.getContext("2d");
+  scannerInterval=setInterval(()=>{
+    if(video.readyState!==video.HAVE_ENOUGH_DATA) return;
+    canvas.width=video.videoWidth;
+    canvas.height=video.videoHeight;
+    ctx.drawImage(video,0,0,canvas.width,canvas.height);
+    const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+    // Use jsQR if available
+    if(typeof jsQR!=="undefined"){
+      const code=jsQR(imageData.data,imageData.width,imageData.height);
+      if(code){ handleScanResult(code.data); }
+    }
+  },200);
+}
+
+function handleScanResult(data){
+  stopScanner();
+  document.getElementById("scan-line").style.display="none";
+  // Check if it's a Qardo card URL
+  try{
+    const url=new URL(data);
+    const raw=url.searchParams.get("card");
+    if(raw){
+      const c=JSON.parse(decodeURIComponent(raw));
+      if(c.name){
+        document.getElementById("scanner-status").textContent="✦ Karte erkannt!";
+        document.getElementById("scanner-result").style.display="block";
+        document.getElementById("scanner-result").innerHTML=`
+          <div style="background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;">
+            ${buildCard(c,c.template||"cotton",true)}
+            <div style="margin-top:10px;font-size:13px;color:#1a1a1a;font-family:Georgia,serif;font-weight:600;">${c.name}</div>
+            <div style="font-size:11px;color:#7a6a55;font-family:Georgia,serif;">${c.title||""}${c.company?" · "+c.company:""}</div>
+          </div>
+          <button onclick="saveScannedCard('${encodeURIComponent(raw)}')" class="btn btn-dark" style="width:100%;margin-bottom:8px;">In Wallet speichern ✦</button>
+          <button onclick="openScanner()" class="btn btn-light" style="width:100%;">Nochmal scannen</button>`;
+        return;
+      }
+    }
+  }catch(e){}
+  // Not a Qardo URL
+  document.getElementById("scanner-status").textContent="Kein Qardo QR-Code erkannt.";
+  document.getElementById("scanner-result").style.display="block";
+  document.getElementById("scanner-result").innerHTML=`<button onclick="openScanner()" class="btn btn-light" style="width:100%;">Nochmal scannen</button>`;
+}
+
+async function saveScannedCard(encoded){
+  try{
+    const c=JSON.parse(decodeURIComponent(encoded));
+    c.saved_at=new Date().toISOString();
+    await saveWalletToDB(c);
+    wallet.push(c);
+    toast("Karte gespeichert ✦");
+    stopScanner();
+    goBack();
+    renderWallet();
+  }catch(e){ toast("Fehler beim Speichern"); }
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
