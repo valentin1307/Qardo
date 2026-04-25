@@ -1,28 +1,1456 @@
-{
-  "name": "Qardo — Business Cards",
-  "short_name": "Qardo",
-  "description": "Digitale Visitenkarten — klassisch, elegant, schnell",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#1e3a6e",
-  "theme_color": "#1e3a6e",
-  "orientation": "portrait",
-  "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-180.png",
-      "sizes": "180x180",
-      "type": "image/png"
-    }
-  ]
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Qardo — Business Cards</title>
+<meta name="theme-color" content="#1e3a6e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Qardo">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Lato:wght@300;400&family=Libre+Baskerville:wght@400;700&family=Josefin+Sans:wght@300;400&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--g:#1e3a6e;--gl:#2d5196;--gold:#c4b89a;--cream:#faf7f0;--border:#e8e4dc;}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(--g);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0;}
+
+/* ── Phone shell ── */
+.phone-wrap{width:100%;max-width:390px;min-height:100vh;background:#fff;display:flex;flex-direction:column;position:relative;overflow:hidden;}
+
+/* ── Status bar ── */
+.status{height:44px;background:#fff;display:flex;align-items:flex-end;justify-content:space-between;padding:0 20px 6px;flex-shrink:0;}
+.status-time{font-size:15px;font-weight:600;color:#1a1a1a;}
+.status-icons{font-size:12px;color:#1a1a1a;}
+
+/* ── Screen system ── */
+.screen{position:absolute;inset:0;top:44px;bottom:0;background:#fff;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.38s cubic-bezier(.4,0,.2,1);will-change:transform;overflow:hidden;}
+.screen.active{transform:translateX(0);}
+.screen.behind{transform:translateX(-30%);}
+
+/* ── Header ── */
+.hdr{padding:20px 20px 0;flex-shrink:0;}
+.hdr-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
+.app-name{font-size:24px;font-weight:700;color:var(--g);font-family:Georgia,serif;letter-spacing:-0.5px;}
+.app-sub{font-size:10px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;font-family:Georgia,serif;}
+.icon-btn{width:38px;height:38px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--cream);cursor:pointer;border:none;flex-shrink:0;}
+
+/* ── Back row ── */
+.back-row{padding:14px 20px 12px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.back-btn{background:none;border:none;font-size:24px;color:var(--g);cursor:pointer;padding:0;line-height:1;}
+.back-title{font-size:16px;font-weight:600;font-family:Georgia,serif;color:var(--g);}
+
+/* ── Scrollable body ── */
+.body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px;}
+.body.no-pad{padding:0;}
+
+/* ── Tab bar ── */
+.tab-bar{height:60px;background:#fff;border-top:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-around;flex-shrink:0;}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 16px;border:none;background:none;}
+.tab-icon{font-size:20px;}
+.tab-label{font-size:10px;font-family:Georgia,serif;}
+.tab.active .tab-icon,.tab.active .tab-label{color:var(--g);}
+.tab:not(.active) .tab-icon,.tab:not(.active) .tab-label{color:#bbb;}
+
+/* ── Section label ── */
+.sec{font-size:10px;color:#bbb;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;font-family:Georgia,serif;}
+
+/* ── Card ── */
+.card-wrap{position:relative;overflow:hidden;border-radius:8px;flex-shrink:0;}
+.card-accent{position:absolute;left:0;top:0;bottom:0;width:4px;z-index:2;}
+.card-rule{position:absolute;left:22px;right:22px;height:0.5px;opacity:0.5;z-index:2;}
+.card-orn{position:absolute;top:10px;right:14px;font-size:9px;opacity:0.6;z-index:2;font-family:Georgia,serif;}
+.card-content{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;justify-content:center;}
+.card-name{font-weight:normal;}
+.card-title{text-transform:uppercase;}
+
+/* ── Buttons ── */
+.btn{padding:13px;border-radius:12px;font-size:14px;font-family:Georgia,serif;text-align:center;cursor:pointer;border:none;width:100%;}
+.btn-dark{background:var(--g);color:var(--cream);}
+.btn-light{background:#f5f5f0;color:var(--g);border:0.5px solid #e0d8c0;}
+.btn-gold{background:var(--gold);color:#1a1a1a;}
+.btn-row{display:flex;gap:10px;}
+.btn-row .btn{flex:1;}
+.btn-danger{background:#fff5f5;color:#c04040;border:0.5px solid #f0c0c0;}
+
+/* ── Form ── */
+.form-group{margin-bottom:16px;}
+.form-label{font-size:10px;color:#999;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;display:block;font-family:Georgia,serif;}
+.form-input{width:100%;border:0.5px solid #d8d0c0;border-radius:10px;padding:12px 14px;font-size:15px;font-family:Georgia,serif;color:#1a1a1a;background:#fff;outline:none;transition:border-color 0.2s;}
+.form-input:focus{border-color:var(--g);}
+
+/* ── Template grid ── */
+.tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.tpl-tile{border-radius:12px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border 0.15s;}
+.tpl-tile.sel{border:2.5px solid var(--gold);}
+.tpl-preview{padding:12px 12px 10px;position:relative;overflow:hidden;}
+.tpl-bar{height:3px;width:18px;border-radius:1px;margin-bottom:8px;position:relative;z-index:1;}
+.tpl-aa{font-size:14px;margin-bottom:2px;position:relative;z-index:1;}
+.tpl-sub-txt{font-size:7px;letter-spacing:1px;text-transform:uppercase;position:relative;z-index:1;}
+.tpl-name-row{background:#f9f8f5;padding:5px 10px;}
+.tpl-name-txt{font-size:11px;font-weight:600;color:#1a1a1a;font-family:Georgia,serif;}
+
+/* ── Info row ── */
+.info-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:0.5px solid #ede8df;}
+.info-icon-wrap{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.info-label{font-size:10px;color:#a09080;letter-spacing:1.2px;text-transform:uppercase;font-family:Georgia,serif;margin-bottom:1px;}
+.info-value{font-size:13px;color:#1a1a1a;font-family:Georgia,serif;}
+.info-arrow{font-size:12px;color:#c4b89a;margin-left:auto;}
+
+/* ── QR ── */
+.qr-box{background:#fff;padding:16px;border-radius:16px;border:0.5px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,0.08);display:inline-flex;align-items:center;justify-content:center;}
+
+/* ── Wallet card row ── */
+.wallet-row{cursor:pointer;margin-bottom:14px;}
+.wallet-meta{display:flex;justify-content:space-between;margin-top:6px;}
+.wallet-tpl-name{font-size:10px;color:#aaa;font-family:Georgia,serif;}
+.wallet-tap{font-size:10px;color:#c4b89a;}
+
+/* ── Empty state ── */
+.empty{text-align:center;padding:40px 20px;}
+.empty-icon{font-size:40px;margin-bottom:12px;}
+.empty-title{font-size:16px;color:#1a1a1a;font-family:Georgia,serif;margin-bottom:6px;}
+.empty-sub{font-size:13px;color:#aaa;font-family:Georgia,serif;line-height:1.6;margin-bottom:24px;}
+
+/* ── Home indicator ── */
+.home-ind{height:28px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.home-bar{width:100px;height:4px;border-radius:2px;background:#1a1a1a;opacity:0.15;}
+
+/* ── Paywall overlay ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;display:flex;align-items:flex-end;display:none;}
+.overlay.show{display:flex;}
+.sheet{background:var(--cream);border-radius:20px 20px 0 0;padding:28px 24px 40px;width:100%;max-width:390px;margin:0 auto;}
+.sheet-handle{width:36px;height:4px;background:#c4b89a;border-radius:2px;margin:0 auto 20px;}
+
+/* ── Tab editor ── */
+.editor-tabs{display:flex;border-bottom:0.5px solid var(--border);}
+.editor-tab{flex:1;padding:9px 0;font-size:12px;text-align:center;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:Georgia,serif;color:#aaa;transition:all 0.2s;}
+.editor-tab.active{color:var(--g);border-bottom-color:var(--g);}
+
+/* ── Card preview strip ── */
+.preview-strip{background:#f5f3ee;padding:16px 0;display:flex;justify-content:center;border-bottom:0.5px solid #e8e0d0;flex-shrink:0;}
+
+/* ── Social badges ── */
+.social-badge{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f9f8f5;border-radius:10px;border:0.5px solid var(--border);margin-bottom:8px;cursor:pointer;text-decoration:none;}
+.social-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:700;flex-shrink:0;}
+.social-label{font-size:10px;color:#a09080;letter-spacing:1px;text-transform:uppercase;font-family:Georgia,serif;}
+.social-handle{font-size:13px;color:#1a5aaa;font-family:Georgia,serif;}
+
+/* ── Auth screen ── */
+.auth-wrap{width:100%;max-width:390px;min-height:100vh;background:linear-gradient(160deg,#0a1628 0%,#1e3a6e 60%,#0d1f12 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 24px;}
+
+/* Logo above card */
+.auth-brand{display:flex;align-items:center;gap:10px;margin-bottom:32px;}
+.auth-brand-icon{width:38px;height:38px;border-radius:10px;background:#2d5196;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+.auth-brand-card{width:24px;height:15px;background:#faf7f0;border-radius:2px;position:relative;transform:rotate(-8deg);}
+.auth-brand-bar{position:absolute;left:0;top:0;bottom:0;width:3px;background:#c4b89a;border-radius:1px;}
+.auth-brand-name{font-size:22px;font-weight:700;color:#f5f1ea;font-family:Georgia,serif;letter-spacing:-0.5px;}
+.auth-brand-tag{font-size:9px;color:#c4b89a;letter-spacing:2px;text-transform:uppercase;font-family:Georgia,serif;}
+
+/* The card itself */
+.bigcard{width:100%;perspective:1200px;}
+.bigcard-inner{position:relative;transform-style:preserve-3d;transition:transform 0.65s cubic-bezier(.4,0,.2,1);}
+.bigcard-inner.flipped{transform:rotateY(180deg);}
+.bigcard-front,.bigcard-back{border-radius:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.4);}
+.bigcard-back{position:absolute;inset:0;transform:rotateY(180deg);pointer-events:none;}
+.bigcard-inner.flipped .bigcard-back{pointer-events:auto;}
+.bigcard-inner.flipped .bigcard-front{pointer-events:none;}
+
+/* Inputs */
+.ci{width:100%;background:rgba(0,0,0,0.05);border:0.5px solid #d8d0c0;border-radius:9px;padding:12px 14px;font-size:14px;font-family:Georgia,serif;color:#1a1a1a;outline:none;margin-bottom:10px;transition:border-color 0.2s;}
+.ci::placeholder{color:#aaa;}
+.ci:focus{border-color:#1e3a6e;}
+.cb{width:100%;padding:13px;border-radius:9px;font-size:14px;font-family:Georgia,serif;font-weight:600;border:none;cursor:pointer;}
+.auth-err{font-size:11px;color:#c04040;font-family:Georgia,serif;min-height:16px;margin-bottom:6px;}
+.auth-footer{margin-top:20px;font-size:10px;color:rgba(255,255,255,0.18);font-family:Georgia,serif;text-align:center;}
+
+/* ── Animations ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.fadein{animation:fadeUp 0.4s ease forwards;}
+@keyframes scanline{0%{top:12px;}50%{top:calc(100% - 14px);}100%{top:12px;}}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-family:Georgia,serif;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<!-- ══ LANDING PAGE ══ -->
+<div id="landing-wrap" style="display:none;">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#fff;display:flex;flex-direction:column;margin:0 auto;">
+
+    <!-- Nav -->
+    <div style="padding:20px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid #f0ece4;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:28px;height:28px;border-radius:7px;background:#1e3a6e;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;">
+          <div style="width:17px;height:11px;background:#faf7f0;border-radius:2px;position:relative;transform:rotate(-8deg);">
+            <div style="position:absolute;left:0;top:0;bottom:0;width:2.5px;background:#c4b89a;border-radius:1px;"></div>
+          </div>
+        </div>
+        <span style="font-family:Georgia,serif;font-size:16px;font-weight:normal;color:#1e3a6e;letter-spacing:-0.3px;">Qardo</span>
+      </div>
+      <button onclick="showAuth()" style="padding:8px 18px;border-radius:20px;background:#1e3a6e;color:#faf7f0;border:none;font-family:Georgia,serif;font-size:13px;cursor:pointer;">Anmelden</button>
+    </div>
+
+    <!-- Hero -->
+    <div style="padding:48px 24px 32px;text-align:center;">
+      <!-- Big card mockup -->
+      <div style="display:inline-block;margin-bottom:32px;position:relative;">
+        <div style="width:280px;height:162px;background:#faf8f4;border-radius:8px;position:relative;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.06);border:1px solid #e8e0cc;">
+          <div style="position:absolute;inset:0;opacity:0.04;background-image:repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px);"></div>
+          <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:#1e3a6e;"></div>
+          <div style="position:absolute;top:22px;left:18px;right:18px;height:0.5px;background:#c4b89a;opacity:0.5;"></div>
+          <div style="position:absolute;bottom:22px;left:18px;right:18px;height:0.5px;background:#c4b89a;opacity:0.5;"></div>
+          <div style="position:absolute;top:8px;right:12px;font-size:8px;color:#7a6a55;opacity:0.5;font-family:Georgia,serif;">✦</div>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:26px 20px 26px 24px;">
+            <div style="font-family:Georgia,serif;font-size:17px;color:#1a1a1a;letter-spacing:0.3px;margin-bottom:2px;">Max Mustermann</div>
+            <div style="font-family:Georgia,serif;font-size:8px;color:#7a6a55;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:14px;">Product Designer · Qardo</div>
+            <div style="font-family:Georgia,serif;font-size:7.5px;color:#7a6a55;margin-bottom:2px;">max@qardo.app</div>
+            <div style="font-family:Georgia,serif;font-size:7px;color:#1e3a6e;opacity:0.7;">qardo.app</div>
+          </div>
+        </div>
+        <!-- Second card peeking -->
+        <div style="position:absolute;bottom:-12px;left:16px;right:16px;height:162px;background:#0a1628;border-radius:8px;z-index:-1;box-shadow:0 8px 24px rgba(0,0,0,0.2);"></div>
+      </div>
+
+      <h1 style="font-family:Georgia,serif;font-size:26px;color:#1a1a1a;font-weight:normal;letter-spacing:-0.5px;margin-bottom:14px;line-height:1.3;">
+        Deine Visitenkarte.<br>Immer dabei.
+      </h1>
+      <p style="font-size:15px;color:#7a6a55;font-family:Georgia,serif;line-height:1.7;margin-bottom:32px;max-width:300px;margin-left:auto;margin-right:auto;">
+        Erstelle eine klassische Visitenkarte für dein Handy. Teile sie per QR-Code — kein Papier, kein Chip, kein Aufwand.
+      </p>
+      <button onclick="showAuth()" style="width:100%;max-width:280px;padding:15px;border-radius:12px;background:#1e3a6e;color:#faf7f0;border:none;font-family:Georgia,serif;font-size:15px;cursor:pointer;margin-bottom:10px;">Kostenlos starten ✦</button>
+    </div>
+
+    <!-- Features -->
+    <div style="padding:0 24px 40px;">
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        
+        <div style="display:flex;gap:16px;align-items:flex-start;padding:16px;background:#f9f8f5;border-radius:12px;border:0.5px solid #e8e0cc;">
+          <div style="width:36px;height:36px;border-radius:9px;background:#1e3a6e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#faf7f0" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/></svg>
+          </div>
+          <div>
+            <div style="font-family:Georgia,serif;font-size:14px;color:#1a1a1a;margin-bottom:3px;">QR-Code teilen</div>
+            <div style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;line-height:1.5;">Zeig deinen QR-Code — der andere scannt und hat deine Karte sofort. Keine App nötig.</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:16px;align-items:flex-start;padding:16px;background:#f9f8f5;border-radius:12px;border:0.5px solid #e8e0cc;">
+          <div style="width:36px;height:36px;border-radius:9px;background:#1e3a6e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#faf7f0" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          </div>
+          <div>
+            <div style="font-family:Georgia,serif;font-size:14px;color:#1a1a1a;margin-bottom:3px;">In 30 Sekunden fertig</div>
+            <div style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;line-height:1.5;">Name, Kontakt, Design wählen — deine Karte ist sofort bereit zum Teilen.</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:16px;align-items:flex-start;padding:16px;background:#f9f8f5;border-radius:12px;border:0.5px solid #e8e0cc;">
+          <div style="width:36px;height:36px;border-radius:9px;background:#1e3a6e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#faf7f0" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <div>
+            <div style="font-family:Georgia,serif;font-size:14px;color:#1a1a1a;margin-bottom:3px;">8 klassische Designs</div>
+            <div style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;line-height:1.5;">Cotton, Noir, Forest, Midnight und mehr — jede Karte sieht aus wie eine echte Druckkarte.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Language switch -->
+    <div style="padding:0 24px 24px;text-align:center;">
+      <span onclick="toggleLang()" style="font-size:11px;color:#bbb;font-family:Georgia,serif;cursor:pointer;text-decoration:underline;" id="lang-toggle">View in English</span>
+    </div>
+
+    <!-- English section (hidden by default) -->
+    <div id="en-section" style="display:none;padding:0 24px 48px;border-top:0.5px solid #f0ece4;margin-top:8px;">
+      <div style="text-align:center;padding:32px 0 24px;">
+        <h2 style="font-family:Georgia,serif;font-size:22px;color:#1a1a1a;font-weight:normal;letter-spacing:-0.3px;margin-bottom:12px;">Your business card. Always with you.</h2>
+        <p style="font-size:14px;color:#7a6a55;font-family:Georgia,serif;line-height:1.7;margin-bottom:24px;">Create a classic business card for your phone. Share it via QR code — no paper, no NFC chip, no hassle.</p>
+        <button onclick="showAuth()" style="padding:14px 32px;border-radius:12px;background:#1e3a6e;color:#faf7f0;border:none;font-family:Georgia,serif;font-size:14px;cursor:pointer;">Get started free ✦</button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="margin-top:auto;padding:20px 24px;border-top:0.5px solid #f0ece4;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-family:Georgia,serif;font-size:11px;color:#bbb;">© 2025 Qardo</span>
+      <span style="font-family:Georgia,serif;font-size:11px;color:#bbb;">Business Cards</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ AUTH ══ -->
+<div class="auth-wrap" id="auth-wrap">
+
+  <!-- Brand -->
+  <div class="auth-brand">
+    <div class="auth-brand-icon">
+      <div class="auth-brand-card"><div class="auth-brand-bar"></div></div>
+    </div>
+    <div>
+      <div class="auth-brand-name">Qardo</div>
+      <div class="auth-brand-tag">Business Cards</div>
+    </div>
+  </div>
+
+  <!-- LOGIN CARD -->
+  <div id="card-login" style="width:100%;background:#faf8f4;border:1px solid #e0d8c8;border-radius:12px;position:relative;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.3);">
+    <div style="position:absolute;inset:0;opacity:0.04;background-image:repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px);pointer-events:none;"></div>
+    <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#1e3a6e;border-radius:12px 0 0 12px;"></div>
+    <div style="position:absolute;top:52px;left:20px;right:20px;height:0.5px;background:#c4b89a;opacity:0.6;"></div>
+    <div style="position:absolute;top:10px;right:16px;font-size:10px;color:#7a6a55;opacity:0.5;font-family:Georgia,serif;">✦</div>
+    <div style="padding:20px 20px 22px 26px;">
+      <div style="margin-bottom:18px;">
+        <div style="font-family:Georgia,serif;font-size:20px;color:#1a1a1a;letter-spacing:0.3px;margin-bottom:2px;">Willkommen zurück</div>
+        <div style="font-family:Georgia,serif;font-size:8.5px;color:#8a9bc4;letter-spacing:2.5px;text-transform:uppercase;">Qardo · Business Cards</div>
+      </div>
+      <div class="auth-err" id="auth-err"></div>
+      <input class="ci" id="auth-email" type="email" placeholder="E-Mail" autocomplete="email">
+      <input class="ci" id="auth-pw" type="password" placeholder="Passwort" autocomplete="current-password">
+      <button class="cb" onclick="doAuth()" style="background:#1e3a6e;color:#faf7f0;margin-top:2px;">Anmelden</button>
+      <div style="text-align:center;margin-top:14px;">
+        <span style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;">Noch kein Konto? </span>
+        <span onclick="showRegister()" style="font-size:12px;color:#1e3a6e;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">Registrieren</span>
+      </div>
+      <div style="text-align:center;margin-top:8px;">
+        <span onclick="showReset()" style="font-size:11px;color:#aaa;font-family:Georgia,serif;cursor:pointer;text-decoration:underline;">Passwort vergessen?</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGISTER CARD -->
+  <div id="card-register" style="display:none;width:100%;background:#faf8f4;border:1px solid #e0d8c8;border-radius:12px;position:relative;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.3);">
+    <div style="position:absolute;inset:0;opacity:0.04;background-image:repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px);pointer-events:none;"></div>
+    <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#c4b89a;border-radius:12px 0 0 12px;"></div>
+    <div style="position:absolute;top:52px;left:20px;right:20px;height:0.5px;background:#c4b89a;opacity:0.6;"></div>
+    <div style="position:absolute;top:10px;right:16px;font-size:10px;color:#7a6a55;opacity:0.5;font-family:Georgia,serif;">✦</div>
+    <div style="padding:20px 20px 22px 26px;">
+      <div style="margin-bottom:18px;">
+        <div style="font-family:Georgia,serif;font-size:20px;color:#1a1a1a;letter-spacing:0.3px;margin-bottom:2px;">Konto erstellen</div>
+        <div style="font-family:Georgia,serif;font-size:8.5px;color:#8a9bc4;letter-spacing:2.5px;text-transform:uppercase;">Qardo · Business Cards</div>
+      </div>
+      <div class="auth-err" id="auth-err-back"></div>
+      <input class="ci" id="auth-name" placeholder="Dein Name" autocomplete="name">
+      <input class="ci" id="auth-email-back" type="email" placeholder="E-Mail" autocomplete="email">
+      <input class="ci" id="auth-pw-back" type="password" placeholder="Passwort (min. 6 Zeichen)">
+      <button class="cb" onclick="doRegister()" style="background:#c4b89a;color:#1a1a1a;margin-top:2px;">Registrieren</button>
+      <div style="text-align:center;margin-top:14px;">
+        <span style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;">Schon ein Konto? </span>
+        <span onclick="showLogin()" style="font-size:12px;color:#1e3a6e;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">Anmelden</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESET PASSWORD CARD -->
+  <div id="card-reset" style="display:none;width:100%;background:#faf8f4;border:1px solid #e0d8c8;border-radius:12px;position:relative;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.3);">
+    <div style="position:absolute;inset:0;opacity:0.04;background-image:repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px);pointer-events:none;"></div>
+    <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#1e3a6e;border-radius:12px 0 0 12px;"></div>
+    <div style="position:absolute;top:52px;left:20px;right:20px;height:0.5px;background:#c4b89a;opacity:0.6;"></div>
+    <div style="position:absolute;top:10px;right:16px;font-size:10px;color:#7a6a55;opacity:0.5;font-family:Georgia,serif;">✦</div>
+    <div style="padding:20px 20px 22px 26px;">
+      <div style="margin-bottom:18px;">
+        <div style="font-family:Georgia,serif;font-size:20px;color:#1a1a1a;letter-spacing:0.3px;margin-bottom:2px;">Passwort zurücksetzen</div>
+        <div style="font-family:Georgia,serif;font-size:8.5px;color:#8a9bc4;letter-spacing:2.5px;text-transform:uppercase;">Qardo · Business Cards</div>
+      </div>
+      <div style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;line-height:1.6;margin-bottom:14px;">Gib deine E-Mail-Adresse ein. Du erhältst einen Link zum Zurücksetzen deines Passworts.</div>
+      <div class="auth-err" id="auth-err-reset"></div>
+      <input class="ci" id="auth-email-reset" type="email" placeholder="E-Mail" autocomplete="email">
+      <button class="cb" onclick="doReset()" style="background:#1e3a6e;color:#faf7f0;margin-top:2px;">Link senden</button>
+      <div style="text-align:center;margin-top:14px;">
+        <span onclick="showLogin()" style="font-size:12px;color:#1e3a6e;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">← Zurück zum Login</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-footer"></div>
+</div>
+
+<div class="phone-wrap" id="app-wrap" style="display:none;">
+  <div class="status">
+    <span class="status-time" id="clock">9:41</span>
+    <span class="status-icons">●●● 🔋</span>
+  </div>
+
+  <!-- ══ HOME ══ -->
+  <div class="screen active" id="sc-home">
+    <div class="hdr">
+      <div class="hdr-row">
+        <div><div class="app-name">Qardo</div><div class="app-sub">Business Cards</div></div>
+        <button class="icon-btn" onclick="newCard()">+</button>
+      </div>
+    </div>
+    <div class="body" id="home-body"></div>
+    <div class="tab-bar">
+      <button class="tab active" onclick="goTab('home')"><div class="tab-icon">◈</div><div class="tab-label">Meine Karte</div></button>
+      <button class="tab" onclick="goTab('wallet')"><div class="tab-icon">⊟</div><div class="tab-label">Wallet</div></button>
+      <button class="tab" onclick="goTab('profile')"><div class="tab-icon">◉</div><div class="tab-label">Profil</div></button>
+    </div>
+    <div class="home-ind"><div class="home-bar"></div></div>
+  </div>
+
+  <!-- ══ WALLET ══ -->
+  <div class="screen" id="sc-wallet">
+    <div class="hdr">
+      <div class="hdr-row">
+        <div><div class="app-name">Wallet</div><div class="app-sub" id="wallet-count">0 Karten</div></div>
+        <button class="icon-btn" onclick="openScanner()" title="QR-Code scannen">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="body" id="wallet-body"></div>
+    <div class="tab-bar">
+      <button class="tab" onclick="goTab('home')"><div class="tab-icon">◈</div><div class="tab-label">Meine Karte</div></button>
+      <button class="tab active" onclick="goTab('wallet')"><div class="tab-icon">⊟</div><div class="tab-label">Wallet</div></button>
+      <button class="tab" onclick="goTab('profile')"><div class="tab-icon">◉</div><div class="tab-label">Profil</div></button>
+    </div>
+    <div class="home-ind"><div class="home-bar"></div></div>
+  </div>
+
+  <!-- ══ PROFILE ══ -->
+  <div class="screen" id="sc-profile">
+    <div class="hdr">
+      <div class="hdr-row">
+        <div><div class="app-name">Profil</div></div>
+      </div>
+    </div>
+    <div class="body">
+      <div style="text-align:center;padding:30px 0 24px;">
+        <div style="width:70px;height:70px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--cream);margin:0 auto 12px;font-family:Georgia,serif;" id="profile-initials">Q</div>
+        <div style="font-size:18px;font-weight:600;font-family:Georgia,serif;color:#1a1a1a;" id="profile-name">Qardo</div>
+        <div style="font-size:12px;color:#aaa;margin-top:2px;" id="profile-email"></div>
+      </div>
+      <div style="background:#f9f8f5;border-radius:14px;border:0.5px solid var(--border);padding:0 14px;margin-bottom:16px;">
+        <div class="info-row"><div class="info-icon-wrap" style="background:#e8f4ec;">🌿</div><div><div class="info-label">Version</div><div class="info-value">Qardo v1.0</div></div></div>
+
+      </div>
+      <button class="btn btn-light" onclick="logout()" style="margin-top:0;">Abmelden</button>
+    </div>
+    <div class="tab-bar">
+      <button class="tab" onclick="goTab('home')"><div class="tab-icon">◈</div><div class="tab-label">Meine Karte</div></button>
+      <button class="tab" onclick="goTab('wallet')"><div class="tab-icon">⊟</div><div class="tab-label">Wallet</div></button>
+      <button class="tab active" onclick="goTab('profile')"><div class="tab-icon">◉</div><div class="tab-label">Profil</div></button>
+    </div>
+    <div class="home-ind"><div class="home-bar"></div></div>
+  </div>
+
+  <!-- ══ CARD DETAIL ══ -->
+  <div class="screen" id="sc-detail">
+    <div class="back-row">
+      <button class="back-btn" onclick="goBack()">‹</button>
+      <div class="back-title">Kartendetails</div>
+    </div>
+    <div class="body" id="detail-body"></div>
+    <div class="home-ind"><div class="home-bar"></div></div>
+  </div>
+
+  <!-- ══ SHARE ══ -->
+  <div class="screen" id="sc-share">
+    <div class="back-row">
+      <button class="back-btn" onclick="goBack()">‹</button>
+      <div class="back-title">Karte teilen</div>
+    </div>
+    <div class="body" style="display:flex;flex-direction:column;align-items:center;" id="share-body"></div>
+    <div class="home-ind"><div class="home-bar"></div></div>
+  </div>
+
+  <!-- ══ EDITOR ══ -->
+  <div class="screen" id="sc-editor">
+    <div style="padding:14px 16px 0;border-bottom:0.5px solid var(--border);flex-shrink:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <button style="background:none;border:none;font-size:13px;color:#7a6a55;cursor:pointer;font-family:Georgia,serif;" onclick="goBack()">Abbrechen</button>
+        <span style="font-size:15px;font-weight:600;color:var(--g);font-family:Georgia,serif;" id="editor-title">Neue Karte</span>
+        <button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;font-family:Georgia,serif;font-weight:600;" onclick="saveCard()">Fertig</button>
+      </div>
+      <div class="editor-tabs">
+        <button class="editor-tab active" id="tab-design" onclick="switchTab('design')">✦ Design</button>
+        <button class="editor-tab" id="tab-font" onclick="switchTab('font')">Aa Schrift</button>
+        <button class="editor-tab" id="tab-info" onclick="switchTab('info')">✎ Infos</button>
+        <button class="editor-tab" id="tab-social" onclick="switchTab('social')">◈ Social</button>
+      </div>
+    </div>
+    <div class="preview-strip"><div id="editor-preview"></div></div>
+    <div style="flex:1;overflow-y:auto;">
+      <div id="panel-design" style="padding:14px;">
+        <div class="sec">Design wählen</div>
+        <div class="tpl-grid" id="tpl-grid"></div>
+      </div>
+      <div id="panel-font" style="padding:14px;display:none;">
+        <div class="sec">Schriftart wählen</div>
+        <div id="font-grid" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+      <div id="panel-info" style="padding:16px;display:none;">
+        <div class="form-group"><label class="form-label">Name *</label><input class="form-input" id="f-name" placeholder="Max Mustermann" oninput="livePreview()"></div>
+        <div class="form-group"><label class="form-label">Berufsbezeichnung</label><input class="form-input" id="f-title" placeholder="Designer" oninput="livePreview()"></div>
+        <div class="form-group"><label class="form-label">Unternehmen</label><input class="form-input" id="f-company" placeholder="Firma GmbH" oninput="livePreview()"></div>
+        <div class="form-group"><label class="form-label">E-Mail</label><input class="form-input" id="f-email" type="email" placeholder="max@firma.at" oninput="livePreview()"></div>
+        <div class="form-group"><label class="form-label">Telefon</label><input class="form-input" id="f-phone" type="tel" placeholder="+43 664 123 456" oninput="livePreview()"></div>
+        <div class="form-group"><label class="form-label">Website</label><input class="form-input" id="f-website" type="url" placeholder="https://firma.at" oninput="livePreview()"></div>
+        <div class="form-group">
+          <label class="form-label">Dein Kürzel (für später)</label>
+          <div style="display:flex;align-items:center;border:0.5px solid #d8d0c0;border-radius:10px;overflow:hidden;background:#fff;">
+            <span style="padding:12px 10px;font-size:12px;color:#aaa;font-family:Georgia,serif;white-space:nowrap;border-right:0.5px solid #e8e0d0;">deinname.app/</span>
+            <input style="flex:1;border:none;padding:12px 10px;font-size:14px;font-family:Georgia,serif;outline:none;" id="f-slug" placeholder="deinname" oninput="livePreview()">
+          </div>
+          <div style="font-size:10px;color:#aaa;margin-top:5px;font-family:Georgia,serif;">Wird aktiv sobald eine eigene Domain verbunden ist</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Firmenlogo (optional)</label>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div id="logo-preview" style="width:50px;height:34px;border:0.5px solid #d8d0c0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;background:#f9f8f5;overflow:hidden;flex-shrink:0;">🏢</div>
+            <label style="flex:1;padding:10px 14px;border:0.5px solid #d8d0c0;border-radius:10px;font-size:13px;font-family:Georgia,serif;color:#7a6a55;cursor:pointer;text-align:center;background:#f9f8f5;">
+              Logo hochladen
+              <input type="file" id="f-logo" accept="image/*" style="display:none;" onchange="handleLogo(this)">
+            </label>
+            <button onclick="clearLogo()" style="padding:10px;border-radius:10px;background:#fff5f5;color:#c04040;border:0.5px solid #f0c0c0;font-size:12px;font-family:Georgia,serif;cursor:pointer;">✕</button>
+          </div>
+        </div>
+      </div>
+      <div id="panel-social" style="padding:16px;display:none;">
+        <div style="font-size:13px;color:#7a6a55;font-family:Georgia,serif;line-height:1.6;margin-bottom:18px;">Nur Benutzernamen eingeben — kein Link nötig.</div>
+        <div class="form-group">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><div style="width:24px;height:24px;border-radius:6px;background:#0077B5;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">in</div><label class="form-label" style="margin:0;">LinkedIn</label></div>
+          <input class="form-input" id="f-linkedin" placeholder="benutzername">
+        </div>
+        <div class="form-group">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><div style="width:24px;height:24px;border-radius:6px;background:#006567;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">X</div><label class="form-label" style="margin:0;">Xing</label></div>
+          <input class="form-input" id="f-xing" placeholder="benutzername">
+        </div>
+        <div class="form-group">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><div style="width:24px;height:24px;border-radius:6px;background:#C13584;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">ig</div><label class="form-label" style="margin:0;">Instagram</label></div>
+          <input class="form-input" id="f-instagram" placeholder="benutzername">
+        </div>
+      </div>
+    </div>
+    <div class="home-ind"><div class="home-bar"></div></div>
+  </div>
+
+  <!-- ══ QR SCANNER ══ -->
+  <div class="screen" id="sc-scanner">
+    <div class="back-row">
+      <button class="back-btn" onclick="stopScanner();goBack()">‹</button>
+      <div class="back-title">QR-Code scannen</div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;background:#0a0a0a;">
+      <div style="position:relative;width:260px;height:260px;border-radius:16px;overflow:hidden;background:#000;">
+        <video id="scanner-video" style="width:100%;height:100%;object-fit:cover;" playsinline autoplay muted></video>
+        <canvas id="scanner-canvas" style="display:none;"></canvas>
+        <!-- Corner markers -->
+        <div style="position:absolute;top:12px;left:12px;width:30px;height:30px;border-top:3px solid #c4b89a;border-left:3px solid #c4b89a;border-radius:4px 0 0 0;"></div>
+        <div style="position:absolute;top:12px;right:12px;width:30px;height:30px;border-top:3px solid #c4b89a;border-right:3px solid #c4b89a;border-radius:0 4px 0 0;"></div>
+        <div style="position:absolute;bottom:12px;left:12px;width:30px;height:30px;border-bottom:3px solid #c4b89a;border-left:3px solid #c4b89a;border-radius:0 0 0 4px;"></div>
+        <div style="position:absolute;bottom:12px;right:12px;width:30px;height:30px;border-bottom:3px solid #c4b89a;border-right:3px solid #c4b89a;border-radius:0 0 4px 0;"></div>
+        <!-- Scan line -->
+        <div id="scan-line" style="position:absolute;left:12px;right:12px;height:2px;background:linear-gradient(90deg,transparent,#c4b89a,transparent);top:50%;animation:scanline 2s infinite;"></div>
+      </div>
+      <div id="scanner-status" style="margin-top:20px;font-size:13px;color:#aaa;font-family:Georgia,serif;text-align:center;line-height:1.6;">Kamera auf QR-Code richten</div>
+      <div id="scanner-result" style="display:none;width:100%;margin-top:16px;"></div>
+    </div>
+  </div>
+
+  <!-- ══ WALLET DETAIL ══ -->
+  <div class="screen" id="sc-wallet-detail">
+    <div class="back-row">
+      <button class="back-btn" onclick="goBack()">‹</button>
+      <div class="back-title" id="wdetail-name"></div>
+    </div>
+    <div class="body" id="wdetail-body"></div>
+    <div class="home-ind"><div class="home-bar"></div></div>
+  </div>
+
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+const TEMPLATES=[
+  {id:"cotton",  name:"Cotton",  bg:"#faf8f4",text:"#1a1a1a",sub:"#7a6a55",accent:"#2a2a2a",border:"#c4b89a",pat:"lines"},
+  {id:"noir",    name:"Noir",    bg:"#0f0f0f",text:"#f5f0e8",sub:"#c4b89a",accent:"#c4b89a",border:"#2a2a2a",pat:"dots"},
+  {id:"forest",  name:"Forest",  bg:"#1c2e20",text:"#e8f0e4",sub:"#8fba8a",accent:"#8fba8a",border:"#2d4a8e",pat:"grid"},
+  {id:"slate",   name:"Slate",   bg:"#f0f2f5",text:"#1a2030",sub:"#4a6080",accent:"#1a2030",border:"#c0cad8",pat:"none"},
+  {id:"rose",    name:"Rose",    bg:"#fdf5f0",text:"#2e1a10",sub:"#b06040",accent:"#c07050",border:"#e8c0a8",pat:"lines"},
+  {id:"midnight",name:"Midnight",bg:"#0a0e1a",text:"#e8eeff",sub:"#6a8adf",accent:"#8aaeff",border:"#1a2040",pat:"dots"},
+  {id:"ivory",   name:"Ivory",   bg:"#fffef8",text:"#2a2010",sub:"#8a7a60",accent:"#2a2010",border:"#e0d8c0",pat:"grid"},
+  {id:"graphite",name:"Graphite",bg:"#2a2a2a",text:"#f0f0f0",sub:"#909090",accent:"#e0e0e0",border:"#404040",pat:"none"},
+];
+const FONTS=[
+  {id:"georgia",    name:"Classic",    label:"Georgia",         css:"Georgia,'Times New Roman',serif",        ls:"0.5px"},
+  {id:"playfair",   name:"Elegant",    label:"Playfair Display",css:"'Playfair Display',Georgia,serif",       ls:"0.3px"},
+  {id:"cormorant",  name:"Refined",    label:"Cormorant",       css:"'Cormorant Garamond',Georgia,serif",     ls:"0.5px"},
+  {id:"baskerville",name:"Editorial",  label:"Libre Baskerville",css:"'Libre Baskerville',Georgia,serif",    ls:"0.2px"},
+  {id:"josefin",    name:"Modern",     label:"Josefin Sans",    css:"'Josefin Sans',sans-serif",              ls:"2px"},
+  {id:"mono",       name:"Technical",  label:"Courier New",     css:"'Courier New',monospace",                ls:"0px"},
+];
+const SOCIALS=[
+  {key:"linkedin", label:"LinkedIn", prefix:"linkedin.com/in/", color:"#0077B5", icon:"in"},
+  {key:"xing",     label:"Xing",     prefix:"xing.com/profile/",color:"#006567", icon:"X"},
+  {key:"instagram",label:"Instagram",prefix:"instagram.com/",   color:"#C13584", icon:"ig"},
+];
+
+// ── Supabase ───────────────────────────────────────────────────────────────
+const SUPA_URL = "https://mmvaqukcmezovvqwyelh.supabase.co";
+const SUPA_KEY = "sb_publishable_U82sMrHUJuuSx4eVz1e_EQ_qXlaujHT";
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true }
+});
+
+// ── State ──────────────────────────────────────────────────────────────────
+let myCards   = [];
+let wallet    = [];
+let currentUser = null;
+let editId    = null;
+let editTpl   = "cotton";
+let editFont  = "georgia";
+let editLogo  = null;
+let screenStack= ["sc-home"];
+let activeTab = "home";
+
+// ── DB helpers ─────────────────────────────────────────────────────────────
+function cleanRow(card, uid){
+  return {
+    user_id:   uid,
+    name:      card.name||"",
+    title:     card.title||"",
+    company:   card.company||"",
+    email:     card.email||"",
+    phone:     card.phone||"",
+    website:   card.website||"",
+    linkedin:  card.linkedin||"",
+    xing:      card.xing||"",
+    instagram: card.instagram||"",
+    template:  card.template||"cotton",
+    font:      card.font||"georgia",
+    logo:      card.logo||"",
+    slug:      card.slug||"",
+  };
 }
+
+async function loadFromDB(){
+  if(!currentUser) return;
+  const uid = currentUser.id;
+  const {data:cards, error:e1} = await supa.from("cards").select("*").eq("user_id", uid).order("created_at");
+  const {data:wal,   error:e2} = await supa.from("wallet").select("*").eq("user_id", uid).order("saved_at");
+  if(e1) console.error("cards load error:", e1);
+  if(e2) console.error("wallet load error:", e2);
+  myCards = (cards||[]).map(c=>({...c, db_id:c.id, id:c.id}));
+  wallet  = (wal||[]).map(c=>({...c, db_id:c.id, id:c.id}));
+}
+
+async function saveCardToDB(card){
+  if(!currentUser) return null;
+  const row = cleanRow(card, currentUser.id);
+  if(card.db_id){
+    const {error} = await supa.from("cards").update(row).eq("id", card.db_id);
+    if(error) console.error("update error:", error);
+    return card.db_id;
+  } else {
+    const {data, error} = await supa.from("cards").insert(row).select().single();
+    if(error) console.error("insert error:", error);
+    return data?.id||null;
+  }
+}
+
+async function deleteCardFromDB(dbId){
+  if(!currentUser||!dbId) return;
+  const {error} = await supa.from("cards").delete().eq("id", dbId);
+  if(error) console.error("delete error:", error);
+}
+
+async function saveWalletToDB(card){
+  if(!currentUser) return;
+  const row = cleanRow(card, currentUser.id);
+  const {error} = await supa.from("wallet").insert(row);
+  if(error) console.error("wallet insert error:", error);
+}
+
+async function deleteWalletFromDB(dbId){
+  if(!currentUser||!dbId) return;
+  await supa.from("wallet").delete().eq("id", dbId);
+}
+
+// ── Save (legacy local fallback) ───────────────────────────────────────────
+function save(){
+}
+
+// ── Clock ──────────────────────────────────────────────────────────────────
+function updateClock(){
+  const n=new Date();
+  document.getElementById("clock").textContent=n.getHours()+":"+String(n.getMinutes()).padStart(2,"0");
+}
+setInterval(updateClock,10000); updateClock();
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2200);
+}
+
+// ── Screen navigation ──────────────────────────────────────────────────────
+function goTo(id){
+  const curr=document.getElementById(screenStack[screenStack.length-1]);
+  const next=document.getElementById(id);
+  curr.classList.add("behind");
+  curr.classList.remove("active");
+  next.classList.remove("behind");
+  next.classList.add("active");
+  screenStack.push(id);
+}
+function goBack(){
+  if(screenStack.length<=1) return;
+  const curr=document.getElementById(screenStack.pop());
+  const prev=document.getElementById(screenStack[screenStack.length-1]);
+  curr.classList.remove("active","behind");
+  prev.classList.remove("behind");
+  prev.classList.add("active");
+  renderHome(); renderWallet();
+}
+function goTab(tab){
+  activeTab=tab;
+  // Hide all screens
+  ["home","wallet","profile"].forEach(t=>{
+    const sc=document.getElementById("sc-"+t);
+    if(sc) sc.classList.remove("active","behind");
+  });
+  // Also hide sub-screens
+  ["detail","share","editor","wallet-detail"].forEach(t=>{
+    const sc=document.getElementById("sc-"+t);
+    if(sc) sc.classList.remove("active","behind");
+  });
+  // Show selected tab screen
+  const active=document.getElementById("sc-"+tab);
+  if(active){ active.classList.add("active"); screenStack=["sc-"+tab]; }
+  // Update tab bar indicators
+  document.querySelectorAll(".tab").forEach((el,i)=>{
+    const labels=["home","wallet","profile"];
+    el.classList.toggle("active",labels[i]===tab);
+  });
+  if(tab==="home")   renderHome();
+  if(tab==="wallet") renderWallet();
+}
+
+// ── Font helper ────────────────────────────────────────────────────────────
+const ff=f=>{const font=FONTS.find(x=>x.id===f)||FONTS[0]; return font.css;};
+const fls=f=>{const font=FONTS.find(x=>x.id===f)||FONTS[0]; return font.ls;};
+const pat=p=>({
+  lines:"repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px)",
+  dots:"radial-gradient(circle,#fff 1px,transparent 1px)",
+  grid:"linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)"
+}[p]||"");
+
+// ── Build card HTML ────────────────────────────────────────────────────────
+function buildCard(card,tplId,small){
+  const s=small?0.78:1;
+  const t=TEMPLATES.find(x=>x.id===tplId)||TEMPLATES[0];
+  const fontId=card.font||"georgia";
+  const w=Math.round(310*s),h=Math.round(179*s);
+  const isMono=fontId==="mono";
+  const fN=Math.round((isMono?14:18)*s);
+  const fS=Math.round((isMono?7.5:9)*s);
+  const fC=Math.round(8*s);
+  const pl=Math.round(28*s),pv=Math.round(32*s);
+  let patDiv="";
+  if(t.pat!=="none"){
+    const bgsz=t.pat!=="lines"?"background-size:12px 12px;":"";
+    patDiv=`<div style="position:absolute;inset:0;opacity:${t.pat==="lines"?0.04:t.pat==="dots"?0.08:0.06};background-image:${pat(t.pat)};${bgsz}"></div>`;
+  }
+  // Logo top right
+  const logoEl=card.logo?`<img src="${card.logo}" style="position:absolute;top:${Math.round(10*s)}px;right:${Math.round(14*s)}px;max-height:${Math.round(22*s)}px;max-width:${Math.round(44*s)}px;object-fit:contain;z-index:3;opacity:0.85;" />`:
+    `<div style="position:absolute;top:${Math.round(10*s)}px;right:${Math.round(14*s)}px;font-size:${Math.round(9*s)}px;color:${t.sub};opacity:0.5;z-index:2;font-family:Georgia,serif;">✦</div>`;
+  const contacts=[
+    card.email?`<div style="font-family:${ff(fontId)};font-size:${fC}px;color:${t.sub};margin-bottom:${Math.round(2.5*s)}px;">${card.email}</div>`:"",
+    card.phone?`<div style="font-family:${ff(fontId)};font-size:${fC}px;color:${t.sub};margin-bottom:${Math.round(2.5*s)}px;">${card.phone}</div>`:"",
+    card.website?`<div style="font-family:${ff(fontId)};font-size:${Math.round(7.5*s)}px;color:${t.accent};opacity:0.8;">${card.website}</div>`:"",
+  ].join("");
+  return `<div style="width:${w}px;height:${h}px;background:${t.bg};border-radius:${Math.round(7*s)}px;position:relative;overflow:hidden;flex-shrink:0;box-shadow:${small?"0 3px 16px rgba(0,0,0,0.16)":"0 10px 40px rgba(0,0,0,0.22)"};border:1px solid ${t.border}33;">
+    ${patDiv}
+    <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(3.5*s)}px;background:${t.accent};z-index:2;"></div>
+    <div style="position:absolute;top:${Math.round(24*s)}px;left:${Math.round(20*s)}px;right:${Math.round(20*s)}px;height:0.5px;background:${t.border};opacity:0.5;z-index:2;"></div>
+    <div style="position:absolute;bottom:${Math.round(24*s)}px;left:${Math.round(20*s)}px;right:${Math.round(20*s)}px;height:0.5px;background:${t.border};opacity:0.5;z-index:2;"></div>
+    ${logoEl}
+    <div style="position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;justify-content:center;padding:${pv}px ${Math.round(20*s)}px ${pv}px ${pl}px;">
+      <div style="font-family:${ff(fontId)};font-size:${fN}px;color:${t.text};letter-spacing:${isMono?"-0.5px":fls(fontId)};margin-bottom:${Math.round(2*s)}px;font-weight:normal;">${card.name||"Dein Name"}</div>
+      <div style="font-family:${ff(fontId)};font-size:${fS}px;color:${t.sub};letter-spacing:${isMono?"0.5px":"2.5px"};text-transform:uppercase;margin-bottom:${Math.round(14*s)}px;">${card.title||""}${card.company?" · "+card.company:""}</div>
+      ${contacts}
+    </div>
+  </div>`;
+}
+
+// ── Render home ────────────────────────────────────────────────────────────
+function renderHome(){
+  const body=document.getElementById("home-body");
+  if(!myCards.length){
+    body.innerHTML=`<div class="empty fadein"><div class="empty-icon">💼</div><div class="empty-title">Noch keine Visitenkarte</div><div class="empty-sub">Erstelle deine erste digitale Visitenkarte — kostenlos und in wenigen Sekunden.</div><button class="btn btn-dark" onclick="newCard()">Erste Karte erstellen</button></div>`;
+    return;
+  }
+  let html="";
+  myCards.forEach((c,i)=>{
+    const tName=TEMPLATES.find(t=>t.id===c.template)?.name||"";
+    html+=`<div class="fadein" style="margin-bottom:24px;">
+      <div class="sec">Meine Karte ${myCards.length>1?"#"+(i+1):""}</div>
+      <div style="cursor:pointer;" onclick="openDetail(${i})">${buildCard(c,c.template,true)}</div>
+      <div style="display:flex;gap:10px;margin-top:10px;">
+        <button class="btn btn-dark" onclick="openShare(${i})">📤 Teilen</button>
+        <button class="btn btn-light" onclick="openEditor(${i})">✎ Bearbeiten</button>
+      </div>
+    </div>`;
+  });
+  // Add new card tile
+  if(myCards.length>0){
+    html+=`<div onclick="newCard()" style="width:242px;height:139px;border-radius:8px;border:1.5px dashed #c4b89a;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:6px;background:#fdf9f4;margin-bottom:20px;">
+      <div style="font-size:24px;color:#c4b89a;">+</div>
+      <div style="font-size:11px;color:#7a6a55;font-family:Georgia,serif;">Neue Karte</div>
+    </div>`;
+  }
+  body.innerHTML=html;
+}
+
+// ── Render wallet ──────────────────────────────────────────────────────────
+function renderWallet(){
+  const body=document.getElementById("wallet-body");
+  document.getElementById("wallet-count").textContent=wallet.length+" Karten gesammelt";
+  if(!wallet.length){
+    body.innerHTML=`<div class="empty fadein"><div class="empty-icon">⊟</div><div class="empty-title">Noch keine Karten</div><div class="empty-sub">Scanne den QR-Code einer anderen Person um ihre Visitenkarte hier zu speichern.</div></div>`;
+    return;
+  }
+  let html="";
+  wallet.forEach((c,i)=>{
+    const tName=TEMPLATES.find(t=>t.id===c.template)?.name||"";
+    html+=`<div class="wallet-row fadein" onclick="openWalletDetail(${i})">
+      ${buildCard(c,c.template,true)}
+      <div class="wallet-meta"><span class="wallet-tpl-name">${c.name} · ${tName}</span><span class="wallet-tap">Tippen ›</span></div>
+    </div>`;
+  });
+  body.innerHTML=html;
+}
+
+// ── Card detail ────────────────────────────────────────────────────────────
+function openDetail(idx){
+  const c=myCards[idx];
+  if(!c) return;
+  const tName=TEMPLATES.find(t=>t.id===c.template)?.name||"";
+  let socials="";
+  SOCIALS.forEach(s=>{
+    if(c[s.key]) socials+=`<a href="https://${s.prefix}${c[s.key]}" target="_blank" class="social-badge"><div class="social-icon" style="background:${s.color};">${s.icon}</div><div><div class="social-label">${s.label}</div><div class="social-handle">@${c[s.key]}</div></div><div class="info-arrow">›</div></a>`;
+  });
+  document.getElementById("detail-body").innerHTML=`
+    <div class="fadein" style="display:flex;justify-content:center;margin-bottom:14px;">${buildCard(c,c.template,false)}</div>
+    <div style="font-size:10px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:18px;font-family:Georgia,serif;">✦ ${tName}</div>
+    <div style="background:#faf8f4;border-radius:14px;border:0.5px solid var(--border);padding:0 14px;margin-bottom:14px;">
+      ${c.email?`<a href="mailto:${c.email}" class="info-row" style="text-decoration:none;"><div class="info-icon-wrap" style="background:#e8f0ff;">✉</div><div><div class="info-label">E-Mail</div><div class="info-value" style="color:#1a5aaa;">${c.email}</div></div><div class="info-arrow">›</div></a>`:""}
+      ${c.phone?`<a href="tel:${c.phone}" class="info-row" style="text-decoration:none;"><div class="info-icon-wrap" style="background:#e8ffe8;">☎</div><div><div class="info-label">Telefon</div><div class="info-value" style="color:#1a5aaa;">${c.phone}</div></div><div class="info-arrow">›</div></a>`:""}
+      ${c.website?`<a href="${c.website}" target="_blank" class="info-row" style="text-decoration:none;border:none;"><div class="info-icon-wrap" style="background:#fff0e8;">⌂</div><div><div class="info-label">Website</div><div class="info-value" style="color:#1a5aaa;">${c.website}</div></div><div class="info-arrow">›</div></a>`:""}
+    </div>
+    ${socials?`<div class="sec" style="margin-bottom:10px;">Social Media</div>${socials}`:""}
+    <div class="btn-row" style="margin-top:16px;margin-bottom:10px;">
+      <button class="btn btn-dark" onclick="openShare(${idx})">📤 Teilen</button>
+      <button class="btn btn-light" onclick="openEditor(${idx})">✎ Bearbeiten</button>
+    </div>
+    <button class="btn btn-danger" onclick="deleteCard(${idx})">Karte löschen</button>`;
+  goTo("sc-detail");
+}
+
+// ── Delete card ────────────────────────────────────────────────────────────
+async function deleteCard(idx){
+  if(!confirm("Visitenkarte wirklich löschen?")) return;
+  const dbId=myCards[idx]?.db_id||myCards[idx]?.id;
+  await deleteCardFromDB(dbId);
+  myCards.splice(idx,1);
+  goBack(); goBack();
+  renderHome();
+}
+
+// ── Share screen ───────────────────────────────────────────────────────────
+function openShare(idx){
+  const c=myCards[idx];
+  if(!c) return;
+  // Logo is now a short Supabase URL — safe to include
+  const logoUrl=c.logo&&!c.logo.startsWith("data:")? c.logo:"";
+  const cardData={name:c.name,title:c.title,company:c.company,email:c.email,phone:c.phone,website:c.website,template:c.template,font:c.font||"georgia",logo:logoUrl,linkedin:c.linkedin||"",xing:c.xing||"",instagram:c.instagram||""};
+  const shareUrl=`${location.origin}${location.pathname}?card=${encodeURIComponent(JSON.stringify(cardData))}`;
+  document.getElementById("share-body").innerHTML=`
+    <div class="fadein" style="margin-bottom:16px;">${buildCard(c,c.template,false)}</div>
+    <div style="background:#f5f3ee;border-radius:10px;padding:8px 14px;margin-bottom:14px;width:100%;text-align:center;">
+      <div style="font-size:9px;color:#aaa;letter-spacing:1.5px;text-transform:uppercase;font-family:Georgia,serif;margin-bottom:2px;">Dein Link</div>
+      <div style="font-size:12px;color:#1e3a6e;font-family:Georgia,serif;word-break:break-all;">${location.hostname}</div>
+    </div>
+    <div class="qr-box"><canvas id="qr-canvas" width="200" height="200"></canvas></div>
+    <div style="margin-top:12px;font-size:13px;color:#7a6a55;font-family:Georgia,serif;text-align:center;">Kamera-App öffnen und scannen</div>
+    <div class="btn-row" style="margin-top:14px;width:100%;">
+      <button class="btn btn-dark" onclick="copyLink('${shareUrl}')">🔗 Link kopieren</button>
+      <button class="btn btn-light" onclick="shareNative('${shareUrl}','${c.name}')">Teilen via...</button>
+    </div>`;
+  goTo("sc-share");
+  setTimeout(()=>drawQR(shareUrl,"qr-canvas"),200);
+}
+
+function drawQR(text, canvasId){
+  const canvas=document.getElementById(canvasId);
+  if(!canvas) return;
+  const ctx=canvas.getContext("2d");
+  const size=200;
+  
+  // Use qrcode-generator library via script tag
+  const script=document.createElement("script");
+  script.src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js";
+  script.onload=function(){
+    try{
+      const qr=qrcode(0,"M");
+      qr.addData(text);
+      qr.make();
+      const modules=qr.getModuleCount();
+      const cell=Math.floor(size/modules);
+      const off=Math.floor((size-cell*modules)/2);
+      ctx.fillStyle="#ffffff";
+      ctx.fillRect(0,0,size,size);
+      ctx.fillStyle="#1a1a1a";
+      for(let r=0;r<modules;r++){
+        for(let c=0;c<modules;c++){
+          if(qr.isDark(r,c)){
+            ctx.fillRect(off+c*cell,off+r*cell,cell,cell);
+          }
+        }
+      }
+    }catch(e){
+      console.error("QR error:",e);
+      ctx.fillStyle="#f9f8f5";
+      ctx.fillRect(0,0,size,size);
+      ctx.fillStyle="#1e3a6e";
+      ctx.font="bold 13px Georgia";
+      ctx.textAlign="center";
+      ctx.fillText("Link kopieren",100,92);
+      ctx.font="13px Georgia";
+      ctx.fillStyle="#7a6a55";
+      ctx.fillText("und teilen ↓",100,114);
+    }
+  };
+  script.onerror=function(){
+    ctx.fillStyle="#f9f8f5";
+    ctx.fillRect(0,0,size,size);
+    ctx.fillStyle="#1e3a6e";
+    ctx.font="bold 13px Georgia";
+    ctx.textAlign="center";
+    ctx.fillText("Link kopieren",100,92);
+    ctx.font="13px Georgia";
+    ctx.fillStyle="#7a6a55";
+    ctx.fillText("und teilen ↓",100,114);
+  };
+  document.head.appendChild(script);
+}
+
+function copyLink(url){
+  navigator.clipboard?.writeText(url).then(()=>toast("Link kopiert!")).catch(()=>toast("Nicht kopierbar"));
+}
+function shareNative(url,name){
+  if(navigator.share) navigator.share({title:`${name} — Qardo`,url});
+  else copyLink(url);
+}
+
+// ── Editor ─────────────────────────────────────────────────────────────────
+function newCard(){
+  
+  editId=null; editTpl="cotton"; editFont="georgia"; editLogo=null;
+  document.getElementById("editor-title").textContent="Neue Karte";
+  clearEditorFields();
+  buildTplGrid("cotton");
+  switchTab("design");
+  livePreview();
+  goTo("sc-editor");
+}
+function openEditor(idx){
+  const c=myCards[idx];
+  if(!c) return;
+  editId=idx; editTpl=c.template; editFont=c.font||"georgia"; editLogo=c.logo||null;
+  document.getElementById("editor-title").textContent="Bearbeiten";
+  document.getElementById("f-name").value=c.name||"";
+  document.getElementById("f-title").value=c.title||"";
+  document.getElementById("f-company").value=c.company||"";
+  document.getElementById("f-email").value=c.email||"";
+  document.getElementById("f-phone").value=c.phone||"";
+  document.getElementById("f-website").value=c.website||"";
+  document.getElementById("f-slug").value=c.slug||"";
+  document.getElementById("f-linkedin").value=c.linkedin||"";
+  document.getElementById("f-xing").value=c.xing||"";
+  document.getElementById("f-instagram").value=c.instagram||"";
+  if(editLogo) document.getElementById("logo-preview").innerHTML=`<img src="${editLogo}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+  else document.getElementById("logo-preview").innerHTML="🏢";
+  buildTplGrid(c.template);
+  switchTab("design");
+  livePreview();
+  goTo("sc-editor");
+}
+function clearEditorFields(){
+  ["f-name","f-title","f-company","f-email","f-phone","f-website","f-slug","f-linkedin","f-xing","f-instagram"].forEach(id=>document.getElementById(id).value="");
+  editLogo=null;
+  document.getElementById("logo-preview").innerHTML="🏢";
+}
+function buildFontGrid(selId){
+  document.getElementById("font-grid").innerHTML=FONTS.map(f=>`
+    <div onclick="selectFont('${f.id}')" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;border:${f.id===selId?"2px solid #c4b89a":"1px solid #e8e0d0"};cursor:pointer;background:${f.id===selId?"#fdf9f4":"#fff"};">
+      <div style="font-family:${f.css};font-size:18px;color:#1a1a1a;flex:1;">${f.label}</div>
+      <div style="font-size:11px;color:#aaa;font-family:Georgia,serif;">${f.name}</div>
+    </div>`).join("");
+}
+function selectFont(id){ editFont=id; buildFontGrid(id); livePreview(); }
+async function handleLogo(input){
+  const file=input.files[0]; if(!file) return;
+  const prev=document.getElementById("logo-preview");
+  prev.innerHTML=`<div style="font-size:10px;color:#aaa;font-family:Georgia,serif;text-align:center;padding:4px;">Lädt...</div>`;
+  try{
+    // Upload to Supabase Storage
+    const ext=file.name.split(".").pop();
+    const fileName=`${currentUser.id}_${Date.now()}.${ext}`;
+    const {data,error}=await supa.storage.from("Logos").upload(fileName,file,{upsert:true,contentType:file.type});
+    if(error) throw error;
+    // Get public URL
+    const {data:urlData}=supa.storage.from("Logos").getPublicUrl(fileName);
+    editLogo=urlData.publicUrl;
+    prev.innerHTML=`<img src="${editLogo}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+    livePreview();
+    toast("Logo hochgeladen ✦");
+  }catch(e){
+    console.error(e);
+    // Fallback to base64 if upload fails
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      editLogo=ev.target.result;
+      prev.innerHTML=`<img src="${editLogo}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+      livePreview();
+    };
+    reader.readAsDataURL(file);
+    toast("Lokales Logo wird verwendet");
+  }
+}
+function clearLogo(){
+  editLogo=null;
+  document.getElementById("logo-preview").innerHTML="🏢";
+  document.getElementById("f-logo").value="";
+  livePreview();
+}
+async function saveCard(){
+  const name=document.getElementById("f-name").value.trim();
+  if(!name){ toast("Name ist erforderlich"); return; }
+  const rawSlug=document.getElementById("f-slug").value.trim().toLowerCase().replace(/[^a-z0-9-]/g,"");
+  const card={
+    db_id: editId!==null?myCards[editId].db_id:null,
+    id:    editId!==null?myCards[editId].id:Date.now(),
+    name, template:editTpl, font:editFont, logo:editLogo||"", slug:rawSlug,
+    title:    document.getElementById("f-title").value.trim(),
+    company:  document.getElementById("f-company").value.trim(),
+    email:    document.getElementById("f-email").value.trim(),
+    phone:    document.getElementById("f-phone").value.trim(),
+    website:  document.getElementById("f-website").value.trim(),
+    linkedin: document.getElementById("f-linkedin").value.trim(),
+    xing:     document.getElementById("f-xing").value.trim(),
+    instagram:document.getElementById("f-instagram").value.trim(),
+  };
+  const dbId = await saveCardToDB(card);
+  if(dbId) card.db_id = dbId;
+  if(editId!==null) myCards[editId]=card;
+  else myCards.push(card);
+  renderHome();
+  goBack();
+  toast(editId!==null?"Karte gespeichert ✦":"Karte erstellt ✦");
+}
+
+// ── Template grid ──────────────────────────────────────────────────────────
+function buildTplGrid(selId){
+  document.getElementById("tpl-grid").innerHTML=TEMPLATES.map(t=>`
+    <div class="tpl-tile${t.id===selId?" sel":""}" onclick="selectTpl('${t.id}')">
+      <div class="tpl-preview" style="background:${t.bg};">
+        ${t.pat!=="none"?`<div style="position:absolute;inset:0;opacity:${t.pat==="lines"?0.05:0.08};background-image:${pat(t.pat)};${t.pat!=="lines"?"background-size:8px 8px":""}"></div>`:""}
+        <div class="tpl-bar" style="background:${t.accent};"></div>
+        <div class="tpl-aa" style="color:${t.text};font-family:${ff(t.font)};">Aa</div>
+        <div class="tpl-sub-txt" style="color:${t.sub};font-family:${ff(t.font)};">Titel</div>
+      </div>
+      <div class="tpl-name-row"><div class="tpl-name-txt">${t.name}</div></div>
+    </div>`).join("");
+}
+function selectTpl(id){ editTpl=id; buildTplGrid(id); livePreview(); }
+
+// ── Tab switcher ───────────────────────────────────────────────────────────
+function switchTab(tab){
+  ["design","font","info","social"].forEach(t=>{
+    document.getElementById("panel-"+t).style.display=t===tab?"block":"none";
+    document.getElementById("tab-"+t).classList.toggle("active",t===tab);
+  });
+  if(tab==="font") buildFontGrid(editFont);
+}
+
+// ── Live preview ───────────────────────────────────────────────────────────
+function livePreview(){
+  const card={
+    name:    document.getElementById("f-name")?.value||"Dein Name",
+    title:   document.getElementById("f-title")?.value||"",
+    company: document.getElementById("f-company")?.value||"",
+    email:   document.getElementById("f-email")?.value||"",
+    phone:   document.getElementById("f-phone")?.value||"",
+    website: document.getElementById("f-website")?.value||"",
+    font:    editFont,
+    logo:    editLogo||"",
+  };
+  document.getElementById("editor-preview").innerHTML=buildCard(card,editTpl,true);
+}
+
+// ── Wallet detail ──────────────────────────────────────────────────────────
+function openWalletDetail(idx){
+  const c=wallet[idx];
+  if(!c) return;
+  document.getElementById("wdetail-name").textContent=c.name;
+  let socials="";
+  SOCIALS.forEach(s=>{
+    if(c[s.key]) socials+=`<a href="https://${s.prefix}${c[s.key]}" target="_blank" class="social-badge"><div class="social-icon" style="background:${s.color};">${s.icon}</div><div><div class="social-label">${s.label}</div><div class="social-handle">@${c[s.key]}</div></div><div class="info-arrow">›</div></a>`;
+  });
+  document.getElementById("wdetail-body").innerHTML=`
+    <div class="fadein" style="display:flex;justify-content:center;margin-bottom:14px;">${buildCard(c,c.template,false)}</div>
+    <div style="background:#faf8f4;border-radius:14px;border:0.5px solid var(--border);padding:0 14px;margin-bottom:14px;">
+      ${c.email?`<a href="mailto:${c.email}" class="info-row" style="text-decoration:none;"><div class="info-icon-wrap" style="background:#e8f0ff;">✉</div><div><div class="info-label">E-Mail</div><div class="info-value" style="color:#1a5aaa;">${c.email}</div></div><div class="info-arrow">›</div></a>`:""}
+      ${c.phone?`<a href="tel:${c.phone}" class="info-row" style="text-decoration:none;"><div class="info-icon-wrap" style="background:#e8ffe8;">☎</div><div><div class="info-label">Telefon</div><div class="info-value" style="color:#1a5aaa;">${c.phone}</div></div><div class="info-arrow">›</div></a>`:""}
+      ${c.website?`<a href="${c.website}" target="_blank" class="info-row" style="text-decoration:none;border:none;"><div class="info-icon-wrap" style="background:#fff0e8;">⌂</div><div><div class="info-label">Website</div><div class="info-value" style="color:#1a5aaa;">${c.website}</div></div><div class="info-arrow">›</div></a>`:""}
+    </div>
+    ${socials?`<div class="sec" style="margin-bottom:10px;">Social Media</div>${socials}`:""}
+    <div style="background:#f5f3ee;border-radius:12px;padding:12px 14px;margin-bottom:14px;">
+      <div class="sec" style="margin-bottom:4px;">Gespeichert</div>
+      <div style="font-size:13px;color:#1a1a1a;font-family:Georgia,serif;">${new Date(c.savedAt||Date.now()).toLocaleDateString("de-AT",{day:"2-digit",month:"long",year:"numeric"})}</div>
+    </div>
+    <button class="btn btn-danger" onclick="removeWallet(${idx})">Aus Wallet entfernen</button>`;
+  goTo("sc-wallet-detail");
+}
+async function removeWallet(idx){
+  const dbId=wallet[idx]?.id;
+  await deleteWalletFromDB(dbId);
+  wallet.splice(idx,1);
+  goBack(); renderWallet();
+}
+
+// ── Paywall ────────────────────────────────────────────────────────────────
+
+
+// ── URL card loading (incoming shared card) ────────────────────────────────
+function checkIncoming(){
+  const params=new URLSearchParams(location.search);
+  const raw=params.get("card");
+  if(!raw) return false;
+  try{
+    const c=JSON.parse(decodeURIComponent(raw));
+    if(!c.name) return false;
+    // Show card immediately — hide auth, show app shell with card view
+    document.getElementById("auth-wrap").style.display="none";
+    document.getElementById("app-wrap").style.display="flex";
+    document.querySelector(".phone-wrap").innerHTML=`
+      <div class="status"><span class="status-time">${new Date().getHours()}:${String(new Date().getMinutes()).padStart(2,"0")}</span><span class="status-icons">●●● 🔋</span></div>
+      <div style="flex:1;overflow-y:auto;padding:20px;background:#f5f3ee;display:flex;flex-direction:column;align-items:center;">
+        <div style="font-size:10px;color:#aaa;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;font-family:Georgia,serif;">Visitenkarte von</div>
+        ${buildCard(c,c.template||"cotton",false)}
+        <div style="width:100%;margin-top:20px;background:#fff;border-radius:14px;border:0.5px solid var(--border);padding:0 14px;">
+          ${c.email?`<a href="mailto:${c.email}" class="info-row" style="text-decoration:none;"><div class="info-icon-wrap" style="background:#e8f0ff;">✉</div><div><div class="info-label">E-Mail</div><div class="info-value" style="color:#1a5aaa;">${c.email}</div></div></a>`:""}
+          ${c.phone?`<a href="tel:${c.phone}" class="info-row" style="text-decoration:none;"><div class="info-icon-wrap" style="background:#e8ffe8;">☎</div><div><div class="info-label">Telefon</div><div class="info-value" style="color:#1a5aaa;">${c.phone}</div></div></a>`:""}
+          ${c.website?`<a href="${c.website}" target="_blank" class="info-row" style="text-decoration:none;border:none;"><div class="info-icon-wrap" style="background:#fff0e8;">⌂</div><div><div class="info-label">Website</div><div class="info-value" style="color:#1a5aaa;">${c.website}</div></div></a>`:""}
+        </div>
+        <div style="width:100%;margin-top:24px;">
+          <div style="text-align:center;padding:20px;background:#fff;border-radius:14px;border:1px solid #c4b89a;">
+            <div style="font-size:13px;font-weight:600;color:#1a1a1a;font-family:Georgia,serif;margin-bottom:6px;">Karte speichern</div>
+            <div style="font-size:12px;color:#7a6a55;margin-bottom:14px;line-height:1.5;">Lade Qardo um diese Karte zu speichern und deine eigene zu erstellen.</div>
+            <button onclick="saveToWalletFromURL()" style="display:block;width:100%;padding:13px;border-radius:12px;background:#1e3a6e;color:#faf7f0;font-size:14px;font-family:Georgia,serif;text-align:center;border:none;cursor:pointer;margin-bottom:10px;">In Wallet speichern ✦</button>
+            <a href="${location.origin}${location.pathname}" style="display:block;padding:13px;border-radius:12px;background:#f5f3ee;color:#1e3a6e;font-size:14px;font-family:Georgia,serif;text-align:center;text-decoration:none;border:0.5px solid #e0d8c0;">Qardo öffnen ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="home-ind"><div class="home-bar"></div></div>`;
+    return true;
+  }catch(e){ console.error(e); return false; }
+}
+
+// ── Save incoming card to wallet ──────────────────────────────────────────
+async function saveToWalletFromURL(){
+  const params=new URLSearchParams(location.search);
+  const raw=params.get("card");
+  if(!raw) return;
+  try{
+    const c=JSON.parse(decodeURIComponent(raw));
+    if(!currentUser){
+      // Store card in sessionStorage so we can save it after login
+      sessionStorage.setItem("pending_card", raw);
+      // Redirect to app login
+      window.location.href=location.origin+location.pathname;
+      return;
+    }
+    await savePendingCard(c);
+  }catch(e){toast("Fehler beim Speichern");}
+}
+
+async function savePendingCard(c){
+  if(!currentUser) return;
+  c.saved_at=new Date().toISOString();
+  await saveWalletToDB(c);
+  wallet.push(c);
+  sessionStorage.removeItem("pending_card");
+  renderWallet();
+  toast("Karte im Wallet gespeichert ✦");
+  // Switch to wallet tab
+  setTimeout(()=>goTab("wallet"), 500);
+}
+
+async function checkPendingCard(){
+  const raw=sessionStorage.getItem("pending_card");
+  if(!raw||!currentUser) return;
+  try{
+    const c=JSON.parse(decodeURIComponent(raw));
+    if(!c.name) return;
+    // Ask user if they want to save
+    const banner=document.createElement("div");
+    banner.className="pending-banner";
+    banner.style.cssText="position:fixed;top:0;left:50%;transform:translateX(-50%);max-width:390px;width:100%;background:#1e3a6e;color:#faf7f0;padding:14px 16px;z-index:500;display:flex;align-items:center;justify-content:space-between;gap:10px;";
+    banner.innerHTML=`<div style="font-family:Georgia,serif;font-size:13px;">Karte von <b>${c.name}</b> speichern?</div><div style="display:flex;gap:8px;"><button onclick="document.querySelectorAll('.pending-banner').forEach(b=>b.remove());sessionStorage.removeItem('pending_card')" style="background:rgba(255,255,255,0.15);border:none;color:#faf7f0;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Georgia,serif;font-size:12px;">Nein</button><button onclick="savePendingCardFromBanner('${encodeURIComponent(raw)}')" style="background:#c4b89a;border:none;color:#1a1a1a;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Georgia,serif;font-size:12px;font-weight:600;">Speichern ✦</button></div>`;
+    document.body.appendChild(banner);
+  }catch(e){ sessionStorage.removeItem("pending_card"); }
+}
+
+async function savePendingCardFromBanner(encoded){
+  document.querySelectorAll(".pending-banner").forEach(b=>b.remove());
+  try{
+    const c=JSON.parse(decodeURIComponent(encoded));
+    await savePendingCard(c);
+  }catch(e){ toast("Fehler beim Speichern"); }
+}
+
+// ── Profile ────────────────────────────────────────────────────────────────
+function updateProfile(){
+  const c=myCards[0];
+  if(c){
+    const ini=c.name.split(" ").map(p=>p[0]||"").join("").toUpperCase().slice(0,2);
+    document.getElementById("profile-initials").textContent=ini;
+    document.getElementById("profile-name").textContent=c.name;
+    document.getElementById("profile-email").textContent=c.email||"";
+  }
+}
+
+// ── Auth ───────────────────────────────────────────────────────────────────
+function showRegister(){
+  document.getElementById("card-login").style.display="none";
+  document.getElementById("card-register").style.display="block";
+  document.getElementById("auth-err").textContent="";
+  document.getElementById("auth-err-back").textContent="";
+}
+function showLogin(){
+  document.getElementById("card-register").style.display="none";
+  document.getElementById("card-reset").style.display="none";
+  document.getElementById("card-login").style.display="block";
+  document.getElementById("auth-err").textContent="";
+  document.getElementById("auth-err-back").textContent="";
+}
+function showReset(){
+  document.getElementById("card-login").style.display="none";
+  document.getElementById("card-register").style.display="none";
+  document.getElementById("card-reset").style.display="block";
+  document.getElementById("auth-err-reset").textContent="";
+}
+async function doReset(){
+  const email=document.getElementById("auth-email-reset").value.trim();
+  const err=document.getElementById("auth-err-reset");
+  if(!email){err.textContent="Bitte E-Mail eingeben.";return;}
+  err.style.color="#1e3a6e";
+  err.textContent="Link wird gesendet...";
+  const {error}=await supa.auth.resetPasswordForEmail(email,{
+    redirectTo: location.origin+location.pathname
+  });
+  if(error){err.style.color="#c04040";err.textContent="Fehler: "+error.message;return;}
+  err.style.color="#1e3a6e";
+  err.textContent="✦ Link gesendet! Bitte prüfe deine E-Mails.";
+}
+function flipCard(){ showRegister(); }
+
+async function doAuth(){
+  const email=document.getElementById("auth-email").value.trim();
+  const pw=document.getElementById("auth-pw").value;
+  const err=document.getElementById("auth-err");
+  if(!email||!pw){err.textContent="Bitte alle Felder ausfüllen.";return;}
+  err.textContent="Einen Moment...";
+  const {data,error}=await supa.auth.signInWithPassword({email,password:pw});
+  if(error){err.textContent="Falsche E-Mail oder Passwort.";return;}
+  await startApp(data.user);
+}
+
+async function doRegister(){
+  const name=document.getElementById("auth-name").value.trim();
+  const email=document.getElementById("auth-email-back").value.trim();
+  const pw=document.getElementById("auth-pw-back").value;
+  const err=document.getElementById("auth-err-back");
+  if(!name||!email||!pw){err.textContent="Bitte alle Felder ausfüllen.";return;}
+  if(pw.length<6){err.textContent="Passwort mindestens 6 Zeichen.";return;}
+  err.textContent="Konto wird erstellt...";
+  const {data,error}=await supa.auth.signUp({email,password:pw,options:{data:{name}}});
+  if(error){err.textContent=error.message;return;}
+  await startApp(data.user);
+}
+
+async function startApp(user){
+  currentUser=user;
+  // Show app immediately with loading state
+  document.getElementById("auth-wrap").style.display="none";
+  document.getElementById("app-wrap").style.display="flex";
+  const name=user.user_metadata?.name||user.email;
+  document.getElementById("profile-name").textContent=name;
+  document.getElementById("profile-email").textContent=user.email;
+  // Show skeleton while loading
+  document.getElementById("home-body").innerHTML=`<div style="padding:20px;text-align:center;color:#aaa;font-family:Georgia,serif;font-size:13px;margin-top:40px;">Karten werden geladen ✦</div>`;
+  await loadFromDB();
+  renderHome();
+  renderWallet();
+  updateProfile();
+  checkPendingCard();
+}
+
+
+async function logout(){
+  if(!confirm("Wirklich abmelden?"))return;
+  await supa.auth.signOut();
+  currentUser=null; myCards=[]; wallet=[];
+  document.getElementById("app-wrap").style.display="none";
+  document.getElementById("auth-wrap").style.display="flex";
+  document.getElementById("auth-email").value="";
+  document.getElementById("auth-pw").value="";
+  document.getElementById("auth-err").textContent="";
+  showLogin();
+}
+
+async function checkSession(){
+  const {data:{session}}=await supa.auth.getSession();
+  if(!session)return false;
+  await startApp(session.user);
+  return true;
+}
+
+// ── QR Scanner ────────────────────────────────────────────────────────────
+let scannerStream = null;
+let scannerInterval = null;
+
+function openScanner(){
+  goTo("sc-scanner");
+  document.getElementById("scanner-result").style.display="none";
+  document.getElementById("scanner-status").textContent="Kamera wird gestartet...";
+  navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}})
+    .then(stream=>{
+      scannerStream=stream;
+      const video=document.getElementById("scanner-video");
+      video.srcObject=stream;
+      video.play();
+      document.getElementById("scanner-status").textContent="Kamera auf QR-Code richten";
+      startScanLoop();
+    })
+    .catch(err=>{
+      document.getElementById("scanner-status").textContent="Kamera nicht verfügbar. Bitte Berechtigung erteilen.";
+    });
+}
+
+function stopScanner(){
+  if(scannerStream){ scannerStream.getTracks().forEach(t=>t.stop()); scannerStream=null; }
+  if(scannerInterval){ clearInterval(scannerInterval); scannerInterval=null; }
+}
+
+function startScanLoop(){
+  const video=document.getElementById("scanner-video");
+  const canvas=document.getElementById("scanner-canvas");
+  const ctx=canvas.getContext("2d");
+  scannerInterval=setInterval(()=>{
+    if(video.readyState!==video.HAVE_ENOUGH_DATA) return;
+    canvas.width=video.videoWidth;
+    canvas.height=video.videoHeight;
+    ctx.drawImage(video,0,0,canvas.width,canvas.height);
+    const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+    // Use jsQR if available
+    if(typeof jsQR!=="undefined"){
+      const code=jsQR(imageData.data,imageData.width,imageData.height);
+      if(code){ handleScanResult(code.data); }
+    }
+  },200);
+}
+
+function handleScanResult(data){
+  stopScanner();
+  document.getElementById("scan-line").style.display="none";
+  // Check if it's a Qardo card URL
+  try{
+    const url=new URL(data);
+    const raw=url.searchParams.get("card");
+    if(raw){
+      const c=JSON.parse(decodeURIComponent(raw));
+      if(c.name){
+        document.getElementById("scanner-status").textContent="✦ Karte erkannt!";
+        document.getElementById("scanner-result").style.display="block";
+        document.getElementById("scanner-result").innerHTML=`
+          <div style="background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;">
+            ${buildCard(c,c.template||"cotton",true)}
+            <div style="margin-top:10px;font-size:13px;color:#1a1a1a;font-family:Georgia,serif;font-weight:600;">${c.name}</div>
+            <div style="font-size:11px;color:#7a6a55;font-family:Georgia,serif;">${c.title||""}${c.company?" · "+c.company:""}</div>
+          </div>
+          <button onclick="saveScannedCard('${encodeURIComponent(raw)}')" class="btn btn-dark" style="width:100%;margin-bottom:8px;">In Wallet speichern ✦</button>
+          <button onclick="openScanner()" class="btn btn-light" style="width:100%;">Nochmal scannen</button>`;
+        return;
+      }
+    }
+  }catch(e){}
+  // Not a Qardo URL
+  document.getElementById("scanner-status").textContent="Kein Qardo QR-Code erkannt.";
+  document.getElementById("scanner-result").style.display="block";
+  document.getElementById("scanner-result").innerHTML=`<button onclick="openScanner()" class="btn btn-light" style="width:100%;">Nochmal scannen</button>`;
+}
+
+async function saveScannedCard(encoded){
+  try{
+    const c=JSON.parse(decodeURIComponent(encoded));
+    c.saved_at=new Date().toISOString();
+    await saveWalletToDB(c);
+    wallet.push(c);
+    toast("Karte gespeichert ✦");
+    stopScanner();
+    goBack();
+    renderWallet();
+  }catch(e){ toast("Fehler beim Speichern"); }
+}
+
+// ── Landing Page ──────────────────────────────────────────────────────────
+function showLanding(){
+  document.getElementById("landing-wrap").style.display="block";
+  document.getElementById("auth-wrap").style.display="none";
+  document.getElementById("app-wrap").style.display="none";
+}
+function showAuth(){
+  document.getElementById("landing-wrap").style.display="none";
+  document.getElementById("auth-wrap").style.display="flex";
+}
+function toggleLang(){
+  const sec=document.getElementById("en-section");
+  const btn=document.getElementById("lang-toggle");
+  const visible=sec.style.display!=="none";
+  sec.style.display=visible?"none":"block";
+  btn.textContent=visible?"View in English":"Auf Deutsch anzeigen";
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+if(checkIncoming()){
+  // Shared card — show directly, no landing page
+} else {
+  (async()=>{
+    const ok = await checkSession();
+    if(!ok){
+      showLanding();
+    }
+  })();
+}
+</script>
+</body>
+</html>
