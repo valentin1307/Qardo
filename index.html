@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Qardo — Business Cards</title>
-<meta name="theme-color" content="#1e3a28">
+<meta name="theme-color" content="#1e3a6e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Qardo">
@@ -16,7 +16,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-:root{--g:#1e3a28;--gl:#2a4e36;--gold:#c8a96e;--cream:#faf7f0;--border:#e8e4dc;}
+:root{--g:#1e3a6e;--gl:#2d5196;--gold:#c4b89a;--cream:#faf7f0;--border:#e8e4dc;}
 body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(--g);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0;}
 
 /* ── Phone shell ── */
@@ -99,7 +99,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 .info-icon-wrap{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
 .info-label{font-size:10px;color:#a09080;letter-spacing:1.2px;text-transform:uppercase;font-family:Georgia,serif;margin-bottom:1px;}
 .info-value{font-size:13px;color:#1a1a1a;font-family:Georgia,serif;}
-.info-arrow{font-size:12px;color:#c8b99a;margin-left:auto;}
+.info-arrow{font-size:12px;color:#c4b89a;margin-left:auto;}
 
 /* ── QR ── */
 .qr-box{background:#fff;padding:16px;border-radius:16px;border:0.5px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,0.08);display:inline-flex;align-items:center;justify-content:center;}
@@ -108,7 +108,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 .wallet-row{cursor:pointer;margin-bottom:14px;}
 .wallet-meta{display:flex;justify-content:space-between;margin-top:6px;}
 .wallet-tpl-name{font-size:10px;color:#aaa;font-family:Georgia,serif;}
-.wallet-tap{font-size:10px;color:#c8b99a;}
+.wallet-tap{font-size:10px;color:#c4b89a;}
 
 /* ── Empty state ── */
 .empty{text-align:center;padding:40px 20px;}
@@ -124,7 +124,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;display:flex;align-items:flex-end;display:none;}
 .overlay.show{display:flex;}
 .sheet{background:var(--cream);border-radius:20px 20px 0 0;padding:28px 24px 40px;width:100%;max-width:390px;margin:0 auto;}
-.sheet-handle{width:36px;height:4px;background:#c8b99a;border-radius:2px;margin:0 auto 20px;}
+.sheet-handle{width:36px;height:4px;background:#c4b89a;border-radius:2px;margin:0 auto 20px;}
 
 /* ── Tab editor ── */
 .editor-tabs{display:flex;border-bottom:0.5px solid var(--border);}
@@ -141,15 +141,15 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 .social-handle{font-size:13px;color:#1a5aaa;font-family:Georgia,serif;}
 
 /* ── Auth screen ── */
-.auth-wrap{width:100%;max-width:390px;min-height:100vh;background:linear-gradient(160deg,#0d1f12 0%,#1e3a28 60%,#0d1f12 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 24px;}
+.auth-wrap{width:100%;max-width:390px;min-height:100vh;background:linear-gradient(160deg,#0a1628 0%,#1e3a6e 60%,#0d1f12 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 24px;}
 
 /* Logo above card */
 .auth-brand{display:flex;align-items:center;gap:10px;margin-bottom:32px;}
-.auth-brand-icon{width:38px;height:38px;border-radius:10px;background:#2a4e36;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+.auth-brand-icon{width:38px;height:38px;border-radius:10px;background:#2d5196;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
 .auth-brand-card{width:24px;height:15px;background:#faf7f0;border-radius:2px;position:relative;transform:rotate(-8deg);}
-.auth-brand-bar{position:absolute;left:0;top:0;bottom:0;width:3px;background:#c8a96e;border-radius:1px;}
-.auth-brand-name{font-size:22px;font-weight:700;color:#faf7f0;font-family:Georgia,serif;letter-spacing:-0.5px;}
-.auth-brand-tag{font-size:9px;color:#c8a96e;letter-spacing:2px;text-transform:uppercase;font-family:Georgia,serif;}
+.auth-brand-bar{position:absolute;left:0;top:0;bottom:0;width:3px;background:#c4b89a;border-radius:1px;}
+.auth-brand-name{font-size:22px;font-weight:700;color:#f5f1ea;font-family:Georgia,serif;letter-spacing:-0.5px;}
+.auth-brand-tag{font-size:9px;color:#c4b89a;letter-spacing:2px;text-transform:uppercase;font-family:Georgia,serif;}
 
 /* The card itself */
 .bigcard{width:100%;perspective:1200px;}
@@ -163,7 +163,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 /* Inputs */
 .ci{width:100%;background:rgba(0,0,0,0.05);border:0.5px solid #d8d0c0;border-radius:9px;padding:12px 14px;font-size:14px;font-family:Georgia,serif;color:#1a1a1a;outline:none;margin-bottom:10px;transition:border-color 0.2s;}
 .ci::placeholder{color:#aaa;}
-.ci:focus{border-color:#1e3a28;}
+.ci:focus{border-color:#1e3a6e;}
 .cb{width:100%;padding:13px;border-radius:9px;font-size:14px;font-family:Georgia,serif;font-weight:600;border:none;cursor:pointer;}
 .auth-err{font-size:11px;color:#c04040;font-family:Georgia,serif;min-height:16px;margin-bottom:6px;}
 .auth-footer{margin-top:20px;font-size:10px;color:rgba(255,255,255,0.18);font-family:Georgia,serif;text-align:center;}
@@ -187,14 +187,14 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
     <!-- Nav -->
     <div style="padding:20px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid #f0ece4;">
       <div style="display:flex;align-items:center;gap:10px;">
-        <div style="width:28px;height:28px;border-radius:7px;background:#1e3a28;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;">
+        <div style="width:28px;height:28px;border-radius:7px;background:#1e3a6e;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;">
           <div style="width:17px;height:11px;background:#faf7f0;border-radius:2px;position:relative;transform:rotate(-8deg);">
-            <div style="position:absolute;left:0;top:0;bottom:0;width:2.5px;background:#c8a96e;border-radius:1px;"></div>
+            <div style="position:absolute;left:0;top:0;bottom:0;width:2.5px;background:#c4b89a;border-radius:1px;"></div>
           </div>
         </div>
-        <span style="font-family:Georgia,serif;font-size:16px;font-weight:normal;color:#1e3a28;letter-spacing:-0.3px;">Qardo</span>
+        <span style="font-family:Georgia,serif;font-size:16px;font-weight:normal;color:#1e3a6e;letter-spacing:-0.3px;">Qardo</span>
       </div>
-      <button onclick="showAuth()" style="padding:8px 18px;border-radius:20px;background:#1e3a28;color:#faf7f0;border:none;font-family:Georgia,serif;font-size:13px;cursor:pointer;">Anmelden</button>
+      <button onclick="showAuth()" style="padding:8px 18px;border-radius:20px;background:#1e3a6e;color:#faf7f0;border:none;font-family:Georgia,serif;font-size:13px;cursor:pointer;">Anmelden</button>
     </div>
 
     <!-- Hero -->
@@ -203,19 +203,19 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
       <div style="display:inline-block;margin-bottom:32px;position:relative;">
         <div style="width:280px;height:162px;background:#faf8f4;border-radius:8px;position:relative;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.06);border:1px solid #e8e0cc;">
           <div style="position:absolute;inset:0;opacity:0.04;background-image:repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px);"></div>
-          <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:#1e3a28;"></div>
-          <div style="position:absolute;top:22px;left:18px;right:18px;height:0.5px;background:#c8b99a;opacity:0.5;"></div>
-          <div style="position:absolute;bottom:22px;left:18px;right:18px;height:0.5px;background:#c8b99a;opacity:0.5;"></div>
+          <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:#1e3a6e;"></div>
+          <div style="position:absolute;top:22px;left:18px;right:18px;height:0.5px;background:#c4b89a;opacity:0.5;"></div>
+          <div style="position:absolute;bottom:22px;left:18px;right:18px;height:0.5px;background:#c4b89a;opacity:0.5;"></div>
           <div style="position:absolute;top:8px;right:12px;font-size:8px;color:#7a6a55;opacity:0.5;font-family:Georgia,serif;">✦</div>
           <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:26px 20px 26px 24px;">
             <div style="font-family:Georgia,serif;font-size:17px;color:#1a1a1a;letter-spacing:0.3px;margin-bottom:2px;">Max Mustermann</div>
             <div style="font-family:Georgia,serif;font-size:8px;color:#7a6a55;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:14px;">Product Designer · Qardo</div>
             <div style="font-family:Georgia,serif;font-size:7.5px;color:#7a6a55;margin-bottom:2px;">max@qardo.app</div>
-            <div style="font-family:Georgia,serif;font-size:7px;color:#1e3a28;opacity:0.7;">qardo.app</div>
+            <div style="font-family:Georgia,serif;font-size:7px;color:#1e3a6e;opacity:0.7;">qardo.app</div>
           </div>
         </div>
         <!-- Second card peeking -->
-        <div style="position:absolute;bottom:-12px;left:16px;right:16px;height:162px;background:#0f0f0f;border-radius:8px;z-index:-1;box-shadow:0 8px 24px rgba(0,0,0,0.2);"></div>
+        <div style="position:absolute;bottom:-12px;left:16px;right:16px;height:162px;background:#0a1628;border-radius:8px;z-index:-1;box-shadow:0 8px 24px rgba(0,0,0,0.2);"></div>
       </div>
 
       <h1 style="font-family:Georgia,serif;font-size:26px;color:#1a1a1a;font-weight:normal;letter-spacing:-0.5px;margin-bottom:14px;line-height:1.3;">
@@ -224,7 +224,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
       <p style="font-size:15px;color:#7a6a55;font-family:Georgia,serif;line-height:1.7;margin-bottom:32px;max-width:300px;margin-left:auto;margin-right:auto;">
         Erstelle eine klassische Visitenkarte für dein Handy. Teile sie per QR-Code — kein Papier, kein Chip, kein Aufwand.
       </p>
-      <button onclick="showAuth()" style="width:100%;max-width:280px;padding:15px;border-radius:12px;background:#1e3a28;color:#faf7f0;border:none;font-family:Georgia,serif;font-size:15px;cursor:pointer;margin-bottom:10px;">Kostenlos starten ✦</button>
+      <button onclick="showAuth()" style="width:100%;max-width:280px;padding:15px;border-radius:12px;background:#1e3a6e;color:#faf7f0;border:none;font-family:Georgia,serif;font-size:15px;cursor:pointer;margin-bottom:10px;">Kostenlos starten ✦</button>
     </div>
 
     <!-- Features -->
@@ -232,7 +232,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
       <div style="display:flex;flex-direction:column;gap:16px;">
         
         <div style="display:flex;gap:16px;align-items:flex-start;padding:16px;background:#f9f8f5;border-radius:12px;border:0.5px solid #e8e0cc;">
-          <div style="width:36px;height:36px;border-radius:9px;background:#1e3a28;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <div style="width:36px;height:36px;border-radius:9px;background:#1e3a6e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#faf7f0" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/></svg>
           </div>
           <div>
@@ -242,7 +242,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
         </div>
 
         <div style="display:flex;gap:16px;align-items:flex-start;padding:16px;background:#f9f8f5;border-radius:12px;border:0.5px solid #e8e0cc;">
-          <div style="width:36px;height:36px;border-radius:9px;background:#1e3a28;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <div style="width:36px;height:36px;border-radius:9px;background:#1e3a6e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#faf7f0" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
           </div>
           <div>
@@ -252,7 +252,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
         </div>
 
         <div style="display:flex;gap:16px;align-items:flex-start;padding:16px;background:#f9f8f5;border-radius:12px;border:0.5px solid #e8e0cc;">
-          <div style="width:36px;height:36px;border-radius:9px;background:#1e3a28;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <div style="width:36px;height:36px;border-radius:9px;background:#1e3a6e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#faf7f0" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
           </div>
           <div>
@@ -274,7 +274,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
       <div style="text-align:center;padding:32px 0 24px;">
         <h2 style="font-family:Georgia,serif;font-size:22px;color:#1a1a1a;font-weight:normal;letter-spacing:-0.3px;margin-bottom:12px;">Your business card. Always with you.</h2>
         <p style="font-size:14px;color:#7a6a55;font-family:Georgia,serif;line-height:1.7;margin-bottom:24px;">Create a classic business card for your phone. Share it via QR code — no paper, no NFC chip, no hassle.</p>
-        <button onclick="showAuth()" style="padding:14px 32px;border-radius:12px;background:#1e3a28;color:#faf7f0;border:none;font-family:Georgia,serif;font-size:14px;cursor:pointer;">Get started free ✦</button>
+        <button onclick="showAuth()" style="padding:14px 32px;border-radius:12px;background:#1e3a6e;color:#faf7f0;border:none;font-family:Georgia,serif;font-size:14px;cursor:pointer;">Get started free ✦</button>
       </div>
     </div>
 
@@ -304,21 +304,21 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
   <!-- LOGIN CARD -->
   <div id="card-login" style="width:100%;background:#faf8f4;border:1px solid #e0d8c8;border-radius:12px;position:relative;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.3);">
     <div style="position:absolute;inset:0;opacity:0.04;background-image:repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px);pointer-events:none;"></div>
-    <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#1e3a28;border-radius:12px 0 0 12px;"></div>
-    <div style="position:absolute;top:52px;left:20px;right:20px;height:0.5px;background:#c8b99a;opacity:0.6;"></div>
+    <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#1e3a6e;border-radius:12px 0 0 12px;"></div>
+    <div style="position:absolute;top:52px;left:20px;right:20px;height:0.5px;background:#c4b89a;opacity:0.6;"></div>
     <div style="position:absolute;top:10px;right:16px;font-size:10px;color:#7a6a55;opacity:0.5;font-family:Georgia,serif;">✦</div>
     <div style="padding:20px 20px 22px 26px;">
       <div style="margin-bottom:18px;">
         <div style="font-family:Georgia,serif;font-size:20px;color:#1a1a1a;letter-spacing:0.3px;margin-bottom:2px;">Willkommen zurück</div>
-        <div style="font-family:Georgia,serif;font-size:8.5px;color:#7a6a55;letter-spacing:2.5px;text-transform:uppercase;">Qardo · Business Cards</div>
+        <div style="font-family:Georgia,serif;font-size:8.5px;color:#8a9bc4;letter-spacing:2.5px;text-transform:uppercase;">Qardo · Business Cards</div>
       </div>
       <div class="auth-err" id="auth-err"></div>
       <input class="ci" id="auth-email" type="email" placeholder="E-Mail" autocomplete="email">
       <input class="ci" id="auth-pw" type="password" placeholder="Passwort" autocomplete="current-password">
-      <button class="cb" onclick="doAuth()" style="background:#1e3a28;color:#faf7f0;margin-top:2px;">Anmelden</button>
+      <button class="cb" onclick="doAuth()" style="background:#1e3a6e;color:#faf7f0;margin-top:2px;">Anmelden</button>
       <div style="text-align:center;margin-top:14px;">
         <span style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;">Noch kein Konto? </span>
-        <span onclick="showRegister()" style="font-size:12px;color:#1e3a28;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">Registrieren</span>
+        <span onclick="showRegister()" style="font-size:12px;color:#1e3a6e;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">Registrieren</span>
       </div>
       <div style="text-align:center;margin-top:8px;">
         <span onclick="showReset()" style="font-size:11px;color:#aaa;font-family:Georgia,serif;cursor:pointer;text-decoration:underline;">Passwort vergessen?</span>
@@ -329,22 +329,22 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
   <!-- REGISTER CARD -->
   <div id="card-register" style="display:none;width:100%;background:#faf8f4;border:1px solid #e0d8c8;border-radius:12px;position:relative;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.3);">
     <div style="position:absolute;inset:0;opacity:0.04;background-image:repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px);pointer-events:none;"></div>
-    <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#c8a96e;border-radius:12px 0 0 12px;"></div>
-    <div style="position:absolute;top:52px;left:20px;right:20px;height:0.5px;background:#c8b99a;opacity:0.6;"></div>
+    <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#c4b89a;border-radius:12px 0 0 12px;"></div>
+    <div style="position:absolute;top:52px;left:20px;right:20px;height:0.5px;background:#c4b89a;opacity:0.6;"></div>
     <div style="position:absolute;top:10px;right:16px;font-size:10px;color:#7a6a55;opacity:0.5;font-family:Georgia,serif;">✦</div>
     <div style="padding:20px 20px 22px 26px;">
       <div style="margin-bottom:18px;">
         <div style="font-family:Georgia,serif;font-size:20px;color:#1a1a1a;letter-spacing:0.3px;margin-bottom:2px;">Konto erstellen</div>
-        <div style="font-family:Georgia,serif;font-size:8.5px;color:#7a6a55;letter-spacing:2.5px;text-transform:uppercase;">Qardo · Business Cards</div>
+        <div style="font-family:Georgia,serif;font-size:8.5px;color:#8a9bc4;letter-spacing:2.5px;text-transform:uppercase;">Qardo · Business Cards</div>
       </div>
       <div class="auth-err" id="auth-err-back"></div>
       <input class="ci" id="auth-name" placeholder="Dein Name" autocomplete="name">
       <input class="ci" id="auth-email-back" type="email" placeholder="E-Mail" autocomplete="email">
       <input class="ci" id="auth-pw-back" type="password" placeholder="Passwort (min. 6 Zeichen)">
-      <button class="cb" onclick="doRegister()" style="background:#c8a96e;color:#1a1a1a;margin-top:2px;">Registrieren</button>
+      <button class="cb" onclick="doRegister()" style="background:#c4b89a;color:#1a1a1a;margin-top:2px;">Registrieren</button>
       <div style="text-align:center;margin-top:14px;">
         <span style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;">Schon ein Konto? </span>
-        <span onclick="showLogin()" style="font-size:12px;color:#1e3a28;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">Anmelden</span>
+        <span onclick="showLogin()" style="font-size:12px;color:#1e3a6e;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">Anmelden</span>
       </div>
     </div>
   </div>
@@ -352,20 +352,20 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
   <!-- RESET PASSWORD CARD -->
   <div id="card-reset" style="display:none;width:100%;background:#faf8f4;border:1px solid #e0d8c8;border-radius:12px;position:relative;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.3);">
     <div style="position:absolute;inset:0;opacity:0.04;background-image:repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px);pointer-events:none;"></div>
-    <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#1e3a28;border-radius:12px 0 0 12px;"></div>
-    <div style="position:absolute;top:52px;left:20px;right:20px;height:0.5px;background:#c8b99a;opacity:0.6;"></div>
+    <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#1e3a6e;border-radius:12px 0 0 12px;"></div>
+    <div style="position:absolute;top:52px;left:20px;right:20px;height:0.5px;background:#c4b89a;opacity:0.6;"></div>
     <div style="position:absolute;top:10px;right:16px;font-size:10px;color:#7a6a55;opacity:0.5;font-family:Georgia,serif;">✦</div>
     <div style="padding:20px 20px 22px 26px;">
       <div style="margin-bottom:18px;">
         <div style="font-family:Georgia,serif;font-size:20px;color:#1a1a1a;letter-spacing:0.3px;margin-bottom:2px;">Passwort zurücksetzen</div>
-        <div style="font-family:Georgia,serif;font-size:8.5px;color:#7a6a55;letter-spacing:2.5px;text-transform:uppercase;">Qardo · Business Cards</div>
+        <div style="font-family:Georgia,serif;font-size:8.5px;color:#8a9bc4;letter-spacing:2.5px;text-transform:uppercase;">Qardo · Business Cards</div>
       </div>
       <div style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;line-height:1.6;margin-bottom:14px;">Gib deine E-Mail-Adresse ein. Du erhältst einen Link zum Zurücksetzen deines Passworts.</div>
       <div class="auth-err" id="auth-err-reset"></div>
       <input class="ci" id="auth-email-reset" type="email" placeholder="E-Mail" autocomplete="email">
-      <button class="cb" onclick="doReset()" style="background:#1e3a28;color:#faf7f0;margin-top:2px;">Link senden</button>
+      <button class="cb" onclick="doReset()" style="background:#1e3a6e;color:#faf7f0;margin-top:2px;">Link senden</button>
       <div style="text-align:center;margin-top:14px;">
-        <span onclick="showLogin()" style="font-size:12px;color:#1e3a28;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">← Zurück zum Login</span>
+        <span onclick="showLogin()" style="font-size:12px;color:#1e3a6e;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">← Zurück zum Login</span>
       </div>
     </div>
   </div>
@@ -547,12 +547,12 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
         <video id="scanner-video" style="width:100%;height:100%;object-fit:cover;" playsinline autoplay muted></video>
         <canvas id="scanner-canvas" style="display:none;"></canvas>
         <!-- Corner markers -->
-        <div style="position:absolute;top:12px;left:12px;width:30px;height:30px;border-top:3px solid #c8a96e;border-left:3px solid #c8a96e;border-radius:4px 0 0 0;"></div>
-        <div style="position:absolute;top:12px;right:12px;width:30px;height:30px;border-top:3px solid #c8a96e;border-right:3px solid #c8a96e;border-radius:0 4px 0 0;"></div>
-        <div style="position:absolute;bottom:12px;left:12px;width:30px;height:30px;border-bottom:3px solid #c8a96e;border-left:3px solid #c8a96e;border-radius:0 0 0 4px;"></div>
-        <div style="position:absolute;bottom:12px;right:12px;width:30px;height:30px;border-bottom:3px solid #c8a96e;border-right:3px solid #c8a96e;border-radius:0 0 4px 0;"></div>
+        <div style="position:absolute;top:12px;left:12px;width:30px;height:30px;border-top:3px solid #c4b89a;border-left:3px solid #c4b89a;border-radius:4px 0 0 0;"></div>
+        <div style="position:absolute;top:12px;right:12px;width:30px;height:30px;border-top:3px solid #c4b89a;border-right:3px solid #c4b89a;border-radius:0 4px 0 0;"></div>
+        <div style="position:absolute;bottom:12px;left:12px;width:30px;height:30px;border-bottom:3px solid #c4b89a;border-left:3px solid #c4b89a;border-radius:0 0 0 4px;"></div>
+        <div style="position:absolute;bottom:12px;right:12px;width:30px;height:30px;border-bottom:3px solid #c4b89a;border-right:3px solid #c4b89a;border-radius:0 0 4px 0;"></div>
         <!-- Scan line -->
-        <div id="scan-line" style="position:absolute;left:12px;right:12px;height:2px;background:linear-gradient(90deg,transparent,#c8a96e,transparent);top:50%;animation:scanline 2s infinite;"></div>
+        <div id="scan-line" style="position:absolute;left:12px;right:12px;height:2px;background:linear-gradient(90deg,transparent,#c4b89a,transparent);top:50%;animation:scanline 2s infinite;"></div>
       </div>
       <div id="scanner-status" style="margin-top:20px;font-size:13px;color:#aaa;font-family:Georgia,serif;text-align:center;line-height:1.6;">Kamera auf QR-Code richten</div>
       <div id="scanner-result" style="display:none;width:100%;margin-top:16px;"></div>
@@ -577,9 +577,9 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 <script>
 // ── Constants ──────────────────────────────────────────────────────────────
 const TEMPLATES=[
-  {id:"cotton",  name:"Cotton",  bg:"#faf8f4",text:"#1a1a1a",sub:"#7a6a55",accent:"#2a2a2a",border:"#c8b99a",pat:"lines"},
-  {id:"noir",    name:"Noir",    bg:"#0f0f0f",text:"#f5f0e8",sub:"#c8a96e",accent:"#c8a96e",border:"#2a2a2a",pat:"dots"},
-  {id:"forest",  name:"Forest",  bg:"#1c2e20",text:"#e8f0e4",sub:"#8fba8a",accent:"#8fba8a",border:"#2e4a32",pat:"grid"},
+  {id:"cotton",  name:"Cotton",  bg:"#faf8f4",text:"#1a1a1a",sub:"#7a6a55",accent:"#2a2a2a",border:"#c4b89a",pat:"lines"},
+  {id:"noir",    name:"Noir",    bg:"#0f0f0f",text:"#f5f0e8",sub:"#c4b89a",accent:"#c4b89a",border:"#2a2a2a",pat:"dots"},
+  {id:"forest",  name:"Forest",  bg:"#1c2e20",text:"#e8f0e4",sub:"#8fba8a",accent:"#8fba8a",border:"#2d4a8e",pat:"grid"},
   {id:"slate",   name:"Slate",   bg:"#f0f2f5",text:"#1a2030",sub:"#4a6080",accent:"#1a2030",border:"#c0cad8",pat:"none"},
   {id:"rose",    name:"Rose",    bg:"#fdf5f0",text:"#2e1a10",sub:"#b06040",accent:"#c07050",border:"#e8c0a8",pat:"lines"},
   {id:"midnight",name:"Midnight",bg:"#0a0e1a",text:"#e8eeff",sub:"#6a8adf",accent:"#8aaeff",border:"#1a2040",pat:"dots"},
@@ -810,8 +810,8 @@ function renderHome(){
   });
   // Add new card tile
   if(myCards.length>0){
-    html+=`<div onclick="newCard()" style="width:242px;height:139px;border-radius:8px;border:1.5px dashed #c8b99a;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:6px;background:#fdf9f4;margin-bottom:20px;">
-      <div style="font-size:24px;color:#c8b99a;">+</div>
+    html+=`<div onclick="newCard()" style="width:242px;height:139px;border-radius:8px;border:1.5px dashed #c4b89a;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:6px;background:#fdf9f4;margin-bottom:20px;">
+      <div style="font-size:24px;color:#c4b89a;">+</div>
       <div style="font-size:11px;color:#7a6a55;font-family:Georgia,serif;">Neue Karte</div>
     </div>`;
   }
@@ -884,7 +884,7 @@ function openShare(idx){
     <div class="fadein" style="margin-bottom:16px;">${buildCard(c,c.template,false)}</div>
     <div style="background:#f5f3ee;border-radius:10px;padding:8px 14px;margin-bottom:14px;width:100%;text-align:center;">
       <div style="font-size:9px;color:#aaa;letter-spacing:1.5px;text-transform:uppercase;font-family:Georgia,serif;margin-bottom:2px;">Dein Link</div>
-      <div style="font-size:12px;color:#1e3a28;font-family:Georgia,serif;word-break:break-all;">${location.hostname}</div>
+      <div style="font-size:12px;color:#1e3a6e;font-family:Georgia,serif;word-break:break-all;">${location.hostname}</div>
     </div>
     <div class="qr-box"><canvas id="qr-canvas" width="200" height="200"></canvas></div>
     <div style="margin-top:12px;font-size:13px;color:#7a6a55;font-family:Georgia,serif;text-align:center;">Kamera-App öffnen und scannen</div>
@@ -927,7 +927,7 @@ function drawQR(text, canvasId){
       console.error("QR error:",e);
       ctx.fillStyle="#f9f8f5";
       ctx.fillRect(0,0,size,size);
-      ctx.fillStyle="#1e3a28";
+      ctx.fillStyle="#1e3a6e";
       ctx.font="bold 13px Georgia";
       ctx.textAlign="center";
       ctx.fillText("Link kopieren",100,92);
@@ -939,7 +939,7 @@ function drawQR(text, canvasId){
   script.onerror=function(){
     ctx.fillStyle="#f9f8f5";
     ctx.fillRect(0,0,size,size);
-    ctx.fillStyle="#1e3a28";
+    ctx.fillStyle="#1e3a6e";
     ctx.font="bold 13px Georgia";
     ctx.textAlign="center";
     ctx.fillText("Link kopieren",100,92);
@@ -998,7 +998,7 @@ function clearEditorFields(){
 }
 function buildFontGrid(selId){
   document.getElementById("font-grid").innerHTML=FONTS.map(f=>`
-    <div onclick="selectFont('${f.id}')" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;border:${f.id===selId?"2px solid #c8a96e":"1px solid #e8e0d0"};cursor:pointer;background:${f.id===selId?"#fdf9f4":"#fff"};">
+    <div onclick="selectFont('${f.id}')" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;border:${f.id===selId?"2px solid #c4b89a":"1px solid #e8e0d0"};cursor:pointer;background:${f.id===selId?"#fdf9f4":"#fff"};">
       <div style="font-family:${f.css};font-size:18px;color:#1a1a1a;flex:1;">${f.label}</div>
       <div style="font-size:11px;color:#aaa;font-family:Georgia,serif;">${f.name}</div>
     </div>`).join("");
@@ -1142,11 +1142,11 @@ function checkIncoming(){
           ${c.website?`<a href="${c.website}" target="_blank" class="info-row" style="text-decoration:none;border:none;"><div class="info-icon-wrap" style="background:#fff0e8;">⌂</div><div><div class="info-label">Website</div><div class="info-value" style="color:#1a5aaa;">${c.website}</div></div></a>`:""}
         </div>
         <div style="width:100%;margin-top:24px;">
-          <div style="text-align:center;padding:20px;background:#fff;border-radius:14px;border:1px solid var(--gold);">
+          <div style="text-align:center;padding:20px;background:#fff;border-radius:14px;border:1px solid #c4b89a;">
             <div style="font-size:13px;font-weight:600;color:#1a1a1a;font-family:Georgia,serif;margin-bottom:6px;">Karte speichern</div>
             <div style="font-size:12px;color:#7a6a55;margin-bottom:14px;line-height:1.5;">Lade Qardo um diese Karte zu speichern und deine eigene zu erstellen.</div>
-            <button onclick="saveToWalletFromURL()" style="display:block;width:100%;padding:13px;border-radius:12px;background:#1e3a28;color:#faf7f0;font-size:14px;font-family:Georgia,serif;text-align:center;border:none;cursor:pointer;margin-bottom:10px;">In Wallet speichern ✦</button>
-            <a href="${location.origin}${location.pathname}" style="display:block;padding:13px;border-radius:12px;background:#f5f3ee;color:#1e3a28;font-size:14px;font-family:Georgia,serif;text-align:center;text-decoration:none;border:0.5px solid #e0d8c0;">Qardo öffnen ↗</a>
+            <button onclick="saveToWalletFromURL()" style="display:block;width:100%;padding:13px;border-radius:12px;background:#1e3a6e;color:#faf7f0;font-size:14px;font-family:Georgia,serif;text-align:center;border:none;cursor:pointer;margin-bottom:10px;">In Wallet speichern ✦</button>
+            <a href="${location.origin}${location.pathname}" style="display:block;padding:13px;border-radius:12px;background:#f5f3ee;color:#1e3a6e;font-size:14px;font-family:Georgia,serif;text-align:center;text-decoration:none;border:0.5px solid #e0d8c0;">Qardo öffnen ↗</a>
           </div>
         </div>
       </div>
@@ -1194,8 +1194,8 @@ async function checkPendingCard(){
     // Ask user if they want to save
     const banner=document.createElement("div");
     banner.className="pending-banner";
-    banner.style.cssText="position:fixed;top:0;left:50%;transform:translateX(-50%);max-width:390px;width:100%;background:#1e3a28;color:#faf7f0;padding:14px 16px;z-index:500;display:flex;align-items:center;justify-content:space-between;gap:10px;";
-    banner.innerHTML=`<div style="font-family:Georgia,serif;font-size:13px;">Karte von <b>${c.name}</b> speichern?</div><div style="display:flex;gap:8px;"><button onclick="document.querySelectorAll('.pending-banner').forEach(b=>b.remove());sessionStorage.removeItem('pending_card')" style="background:rgba(255,255,255,0.15);border:none;color:#faf7f0;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Georgia,serif;font-size:12px;">Nein</button><button onclick="savePendingCardFromBanner('${encodeURIComponent(raw)}')" style="background:#c8a96e;border:none;color:#1a1a1a;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Georgia,serif;font-size:12px;font-weight:600;">Speichern ✦</button></div>`;
+    banner.style.cssText="position:fixed;top:0;left:50%;transform:translateX(-50%);max-width:390px;width:100%;background:#1e3a6e;color:#faf7f0;padding:14px 16px;z-index:500;display:flex;align-items:center;justify-content:space-between;gap:10px;";
+    banner.innerHTML=`<div style="font-family:Georgia,serif;font-size:13px;">Karte von <b>${c.name}</b> speichern?</div><div style="display:flex;gap:8px;"><button onclick="document.querySelectorAll('.pending-banner').forEach(b=>b.remove());sessionStorage.removeItem('pending_card')" style="background:rgba(255,255,255,0.15);border:none;color:#faf7f0;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Georgia,serif;font-size:12px;">Nein</button><button onclick="savePendingCardFromBanner('${encodeURIComponent(raw)}')" style="background:#c4b89a;border:none;color:#1a1a1a;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Georgia,serif;font-size:12px;font-weight:600;">Speichern ✦</button></div>`;
     document.body.appendChild(banner);
   }catch(e){ sessionStorage.removeItem("pending_card"); }
 }
@@ -1243,13 +1243,13 @@ async function doReset(){
   const email=document.getElementById("auth-email-reset").value.trim();
   const err=document.getElementById("auth-err-reset");
   if(!email){err.textContent="Bitte E-Mail eingeben.";return;}
-  err.style.color="#1e3a28";
+  err.style.color="#1e3a6e";
   err.textContent="Link wird gesendet...";
   const {error}=await supa.auth.resetPasswordForEmail(email,{
     redirectTo: location.origin+location.pathname
   });
   if(error){err.style.color="#c04040";err.textContent="Fehler: "+error.message;return;}
-  err.style.color="#1e3a28";
+  err.style.color="#1e3a6e";
   err.textContent="✦ Link gesendet! Bitte prüfe deine E-Mails.";
 }
 function flipCard(){ showRegister(); }
