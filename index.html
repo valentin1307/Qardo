@@ -1046,17 +1046,48 @@ async function saveToWalletFromURL(){
   try{
     const c=JSON.parse(decodeURIComponent(raw));
     if(!currentUser){
-      // Not logged in — redirect to app with card param preserved
-      window.location.href=location.origin+location.pathname+"?card="+encodeURIComponent(raw)+"&save=1";
+      // Store card in sessionStorage so we can save it after login
+      sessionStorage.setItem("pending_card", raw);
+      // Redirect to app login
+      window.location.href=location.origin+location.pathname;
       return;
     }
-    c.saved_at=new Date().toISOString();
-    await saveWalletToDB(c);
-    wallet.push(c);
-    toast("Karte gespeichert ✦");
-    // Go to app wallet
-    setTimeout(()=>{ window.location.href=location.origin+location.pathname; },1200);
+    await savePendingCard(c);
   }catch(e){toast("Fehler beim Speichern");}
+}
+
+async function savePendingCard(c){
+  if(!currentUser) return;
+  c.saved_at=new Date().toISOString();
+  await saveWalletToDB(c);
+  wallet.push(c);
+  sessionStorage.removeItem("pending_card");
+  renderWallet();
+  toast("Karte im Wallet gespeichert ✦");
+  // Switch to wallet tab
+  setTimeout(()=>goTab("wallet"), 500);
+}
+
+async function checkPendingCard(){
+  const raw=sessionStorage.getItem("pending_card");
+  if(!raw||!currentUser) return;
+  try{
+    const c=JSON.parse(decodeURIComponent(raw));
+    if(!c.name) return;
+    // Ask user if they want to save
+    const banner=document.createElement("div");
+    banner.style.cssText="position:fixed;top:0;left:50%;transform:translateX(-50%);max-width:390px;width:100%;background:#1e3a28;color:#faf7f0;padding:14px 16px;z-index:500;display:flex;align-items:center;justify-content:space-between;gap:10px;";
+    banner.innerHTML=`<div style="font-family:Georgia,serif;font-size:13px;">Karte von <b>${c.name}</b> speichern?</div><div style="display:flex;gap:8px;"><button onclick="this.closest('div[style]').remove();sessionStorage.removeItem('pending_card')" style="background:rgba(255,255,255,0.15);border:none;color:#faf7f0;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Georgia,serif;font-size:12px;">Nein</button><button onclick="savePendingCardFromBanner('${encodeURIComponent(raw)}')" style="background:#c8a96e;border:none;color:#1a1a1a;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Georgia,serif;font-size:12px;font-weight:600;">Speichern ✦</button></div>`;
+    document.body.appendChild(banner);
+  }catch(e){ sessionStorage.removeItem("pending_card"); }
+}
+
+async function savePendingCardFromBanner(encoded){
+  document.querySelector("div[style*='position:fixed']")?.remove();
+  try{
+    const c=JSON.parse(decodeURIComponent(encoded));
+    await savePendingCard(c);
+  }catch(e){ toast("Fehler beim Speichern"); }
 }
 
 // ── Profile ────────────────────────────────────────────────────────────────
@@ -1144,6 +1175,7 @@ async function startApp(user){
   renderHome();
   renderWallet();
   updateProfile();
+  checkPendingCard();
 }
 
 async function logout(){
