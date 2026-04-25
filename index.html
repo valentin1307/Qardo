@@ -877,8 +877,9 @@ async function deleteCard(idx){
 function openShare(idx){
   const c=myCards[idx];
   if(!c) return;
-  // Logo excluded from URL — too large for QR code
-  const cardData={name:c.name,title:c.title,company:c.company,email:c.email,phone:c.phone,website:c.website,template:c.template,font:c.font||"georgia",linkedin:c.linkedin||"",xing:c.xing||"",instagram:c.instagram||""};
+  // Logo is now a short Supabase URL — safe to include
+  const logoUrl=c.logo&&!c.logo.startsWith("data:")? c.logo:"";
+  const cardData={name:c.name,title:c.title,company:c.company,email:c.email,phone:c.phone,website:c.website,template:c.template,font:c.font||"georgia",logo:logoUrl,linkedin:c.linkedin||"",xing:c.xing||"",instagram:c.instagram||""};
   const shareUrl=`${location.origin}${location.pathname}?card=${encodeURIComponent(JSON.stringify(cardData))}`;
   document.getElementById("share-body").innerHTML=`
     <div class="fadein" style="margin-bottom:16px;">${buildCard(c,c.template,false)}</div>
@@ -1004,16 +1005,34 @@ function buildFontGrid(selId){
     </div>`).join("");
 }
 function selectFont(id){ editFont=id; buildFontGrid(id); livePreview(); }
-function handleLogo(input){
+async function handleLogo(input){
   const file=input.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    editLogo=e.target.result;
-    const prev=document.getElementById("logo-preview");
+  const prev=document.getElementById("logo-preview");
+  prev.innerHTML=`<div style="font-size:10px;color:#aaa;font-family:Georgia,serif;text-align:center;padding:4px;">Lädt...</div>`;
+  try{
+    // Upload to Supabase Storage
+    const ext=file.name.split(".").pop();
+    const fileName=`${currentUser.id}_${Date.now()}.${ext}`;
+    const {data,error}=await supa.storage.from("Logos").upload(fileName,file,{upsert:true,contentType:file.type});
+    if(error) throw error;
+    // Get public URL
+    const {data:urlData}=supa.storage.from("Logos").getPublicUrl(fileName);
+    editLogo=urlData.publicUrl;
     prev.innerHTML=`<img src="${editLogo}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
     livePreview();
-  };
-  reader.readAsDataURL(file);
+    toast("Logo hochgeladen ✦");
+  }catch(e){
+    console.error(e);
+    // Fallback to base64 if upload fails
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      editLogo=ev.target.result;
+      prev.innerHTML=`<img src="${editLogo}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+      livePreview();
+    };
+    reader.readAsDataURL(file);
+    toast("Lokales Logo wird verwendet");
+  }
 }
 function clearLogo(){
   editLogo=null;
