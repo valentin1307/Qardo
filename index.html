@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Qardo — Business Cards</title>
+<meta name="theme-color" content="#1e3a28">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Qardo">
+<link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Lato:wght@300;400&family=Libre+Baskerville:wght@400;700&family=Josefin+Sans:wght@300;400&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -148,7 +153,9 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 .bigcard-inner{position:relative;transform-style:preserve-3d;transition:transform 0.65s cubic-bezier(.4,0,.2,1);}
 .bigcard-inner.flipped{transform:rotateY(180deg);}
 .bigcard-front,.bigcard-back{border-radius:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.4);}
-.bigcard-back{position:absolute;inset:0;transform:rotateY(180deg);}
+.bigcard-back{position:absolute;inset:0;transform:rotateY(180deg);pointer-events:none;}
+.bigcard-inner.flipped .bigcard-back{pointer-events:auto;}
+.bigcard-inner.flipped .bigcard-front{pointer-events:none;}
 
 /* Inputs */
 .ci{width:100%;background:rgba(0,0,0,0.05);border:0.5px solid #d8d0c0;border-radius:9px;padding:12px 14px;font-size:14px;font-family:Georgia,serif;color:#1a1a1a;outline:none;margin-bottom:10px;transition:border-color 0.2s;}
@@ -183,68 +190,52 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
     </div>
   </div>
 
-  <!-- Card with flip -->
-  <div class="bigcard">
-    <div class="bigcard-inner" id="bigcard-inner">
-
-      <!-- FRONT: Login -->
-      <div class="bigcard-front" style="background:#faf8f4;border:1px solid #e0d8c8;">
-        <!-- lines texture -->
-        <div style="position:absolute;inset:0;opacity:0.04;background-image:repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px);pointer-events:none;"></div>
-        <!-- accent bar -->
-        <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#1e3a28;"></div>
-        <!-- top rule -->
-        <div style="position:absolute;top:52px;left:20px;right:20px;height:0.5px;background:#c8b99a;opacity:0.6;"></div>
-        <!-- ornament -->
-        <div style="position:absolute;top:10px;right:16px;font-size:10px;color:#7a6a55;opacity:0.5;font-family:Georgia,serif;">✦</div>
-
-        <div style="padding:20px 20px 22px 26px;">
-          <!-- Card header -->
-          <div style="margin-bottom:18px;">
-            <div style="font-family:Georgia,serif;font-size:20px;color:#1a1a1a;letter-spacing:0.3px;margin-bottom:2px;">Willkommen zurück</div>
-            <div style="font-family:Georgia,serif;font-size:8.5px;color:#7a6a55;letter-spacing:2.5px;text-transform:uppercase;">Qardo · Business Cards</div>
-          </div>
-          <!-- Fields -->
-          <div class="auth-err" id="auth-err"></div>
-          <input class="ci" id="auth-email" type="email" placeholder="E-Mail" autocomplete="email">
-          <input class="ci" id="auth-pw" type="password" placeholder="Passwort" autocomplete="current-password">
-          <button class="cb" onclick="doAuth()" style="background:#1e3a28;color:#faf7f0;margin-top:2px;">Anmelden</button>
-          <!-- Switch -->
-          <div style="text-align:center;margin-top:14px;">
-            <span style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;">Noch kein Konto? </span>
-            <span onclick="flipCard()" style="font-size:12px;color:#1e3a28;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">Registrieren</span>
-          </div>
-        </div>
+  <!-- LOGIN CARD -->
+  <div id="card-login" style="width:100%;background:#faf8f4;border:1px solid #e0d8c8;border-radius:12px;position:relative;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.3);">
+    <div style="position:absolute;inset:0;opacity:0.04;background-image:repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px);pointer-events:none;"></div>
+    <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#1e3a28;border-radius:12px 0 0 12px;"></div>
+    <div style="position:absolute;top:52px;left:20px;right:20px;height:0.5px;background:#c8b99a;opacity:0.6;"></div>
+    <div style="position:absolute;top:10px;right:16px;font-size:10px;color:#7a6a55;opacity:0.5;font-family:Georgia,serif;">✦</div>
+    <div style="padding:20px 20px 22px 26px;">
+      <div style="margin-bottom:18px;">
+        <div style="font-family:Georgia,serif;font-size:20px;color:#1a1a1a;letter-spacing:0.3px;margin-bottom:2px;">Willkommen zurück</div>
+        <div style="font-family:Georgia,serif;font-size:8.5px;color:#7a6a55;letter-spacing:2.5px;text-transform:uppercase;">Qardo · Business Cards</div>
       </div>
-
-      <!-- BACK: Register -->
-      <div class="bigcard-back" style="background:#faf8f4;border:1px solid #e0d8c8;">
-        <div style="position:absolute;inset:0;opacity:0.04;background-image:repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px);pointer-events:none;"></div>
-        <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#c8a96e;"></div>
-        <div style="position:absolute;top:52px;left:20px;right:20px;height:0.5px;background:#c8b99a;opacity:0.6;"></div>
-        <div style="position:absolute;top:10px;right:16px;font-size:10px;color:#7a6a55;opacity:0.5;font-family:Georgia,serif;">✦</div>
-
-        <div style="padding:20px 20px 22px 26px;">
-          <div style="margin-bottom:18px;">
-            <div style="font-family:Georgia,serif;font-size:20px;color:#1a1a1a;letter-spacing:0.3px;margin-bottom:2px;">Konto erstellen</div>
-            <div style="font-family:Georgia,serif;font-size:8.5px;color:#7a6a55;letter-spacing:2.5px;text-transform:uppercase;">Qardo · Business Cards</div>
-          </div>
-          <div class="auth-err" id="auth-err-back"></div>
-          <input class="ci" id="auth-name" placeholder="Dein Name" autocomplete="name">
-          <input class="ci" id="auth-email-back" type="email" placeholder="E-Mail" autocomplete="email">
-          <input class="ci" id="auth-pw-back" type="password" placeholder="Passwort (min. 6 Zeichen)">
-          <button class="cb" onclick="doRegister()" style="background:#c8a96e;color:#1a1a1a;margin-top:2px;">Registrieren</button>
-          <div style="text-align:center;margin-top:14px;">
-            <span style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;">Schon ein Konto? </span>
-            <span onclick="flipCard()" style="font-size:12px;color:#1e3a28;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">Anmelden</span>
-          </div>
-        </div>
+      <div class="auth-err" id="auth-err"></div>
+      <input class="ci" id="auth-email" type="email" placeholder="E-Mail" autocomplete="email">
+      <input class="ci" id="auth-pw" type="password" placeholder="Passwort" autocomplete="current-password">
+      <button class="cb" onclick="doAuth()" style="background:#1e3a28;color:#faf7f0;margin-top:2px;">Anmelden</button>
+      <div style="text-align:center;margin-top:14px;">
+        <span style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;">Noch kein Konto? </span>
+        <span onclick="showRegister()" style="font-size:12px;color:#1e3a28;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">Registrieren</span>
       </div>
-
     </div>
   </div>
 
-  <div class="auth-footer">Qardo v1.1 · Deine Daten bleiben auf deinem Gerät</div>
+  <!-- REGISTER CARD -->
+  <div id="card-register" style="display:none;width:100%;background:#faf8f4;border:1px solid #e0d8c8;border-radius:12px;position:relative;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.3);">
+    <div style="position:absolute;inset:0;opacity:0.04;background-image:repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px);pointer-events:none;"></div>
+    <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#c8a96e;border-radius:12px 0 0 12px;"></div>
+    <div style="position:absolute;top:52px;left:20px;right:20px;height:0.5px;background:#c8b99a;opacity:0.6;"></div>
+    <div style="position:absolute;top:10px;right:16px;font-size:10px;color:#7a6a55;opacity:0.5;font-family:Georgia,serif;">✦</div>
+    <div style="padding:20px 20px 22px 26px;">
+      <div style="margin-bottom:18px;">
+        <div style="font-family:Georgia,serif;font-size:20px;color:#1a1a1a;letter-spacing:0.3px;margin-bottom:2px;">Konto erstellen</div>
+        <div style="font-family:Georgia,serif;font-size:8.5px;color:#7a6a55;letter-spacing:2.5px;text-transform:uppercase;">Qardo · Business Cards</div>
+      </div>
+      <div class="auth-err" id="auth-err-back"></div>
+      <input class="ci" id="auth-name" placeholder="Dein Name" autocomplete="name">
+      <input class="ci" id="auth-email-back" type="email" placeholder="E-Mail" autocomplete="email">
+      <input class="ci" id="auth-pw-back" type="password" placeholder="Passwort (min. 6 Zeichen)">
+      <button class="cb" onclick="doRegister()" style="background:#c8a96e;color:#1a1a1a;margin-top:2px;">Registrieren</button>
+      <div style="text-align:center;margin-top:14px;">
+        <span style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;">Schon ein Konto? </span>
+        <span onclick="showLogin()" style="font-size:12px;color:#1e3a28;font-family:Georgia,serif;font-weight:600;cursor:pointer;text-decoration:underline;">Anmelden</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-footer">Qardo v1.4 · Deine Daten bleiben auf deinem Gerät</div>
 </div>
 
 <div class="phone-wrap" id="app-wrap" style="display:none;">
@@ -745,28 +736,74 @@ function openShare(idx){
   // Logo excluded from URL — too large for QR code
   const cardData={name:c.name,title:c.title,company:c.company,email:c.email,phone:c.phone,website:c.website,template:c.template,font:c.font||"georgia",linkedin:c.linkedin||"",xing:c.xing||"",instagram:c.instagram||""};
   const shareUrl=`${location.origin}${location.pathname}?card=${encodeURIComponent(JSON.stringify(cardData))}`;
-  // Build QR image URL using api.qrserver.com — no JS library needed
-  const qrSrc=`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=10&color=1a1a1a&bgcolor=ffffff&data=${encodeURIComponent(shareUrl)}`;
   document.getElementById("share-body").innerHTML=`
     <div class="fadein" style="margin-bottom:16px;">${buildCard(c,c.template,false)}</div>
     <div style="background:#f5f3ee;border-radius:10px;padding:8px 14px;margin-bottom:14px;width:100%;text-align:center;">
       <div style="font-size:9px;color:#aaa;letter-spacing:1.5px;text-transform:uppercase;font-family:Georgia,serif;margin-bottom:2px;">Dein Link</div>
       <div style="font-size:12px;color:#1e3a28;font-family:Georgia,serif;word-break:break-all;">${location.hostname}</div>
     </div>
-    <div class="qr-box">
-      <img id="qr-img" src="${qrSrc}" width="200" height="200" style="border-radius:4px;display:block;" alt="QR Code"
-        onerror="this.style.display='none';document.getElementById('qr-fallback').style.display='flex';">
-      <div id="qr-fallback" style="display:none;width:200px;height:200px;flex-direction:column;align-items:center;justify-content:center;background:#f9f8f5;border-radius:4px;">
-        <div style="font-size:13px;font-weight:600;color:#1e3a28;font-family:Georgia,serif;">Link kopieren</div>
-        <div style="font-size:12px;color:#7a6a55;font-family:Georgia,serif;margin-top:4px;">und teilen ↓</div>
-      </div>
-    </div>
+    <div class="qr-box"><canvas id="qr-canvas" width="200" height="200"></canvas></div>
     <div style="margin-top:12px;font-size:13px;color:#7a6a55;font-family:Georgia,serif;text-align:center;">Kamera-App öffnen und scannen</div>
     <div class="btn-row" style="margin-top:14px;width:100%;">
-      <button class="btn btn-dark" onclick="copyLink('${shareUrl.replace(/'/g,"\\'")}')">🔗 Link kopieren</button>
-      <button class="btn btn-light" onclick="shareNative('${shareUrl.replace(/'/g,"\\'")}','${c.name.replace(/'/g,"\\'")}')">Teilen via...</button>
+      <button class="btn btn-dark" onclick="copyLink('${shareUrl}')">🔗 Link kopieren</button>
+      <button class="btn btn-light" onclick="shareNative('${shareUrl}','${c.name}')">Teilen via...</button>
     </div>`;
   goTo("sc-share");
+  setTimeout(()=>drawQR(shareUrl,"qr-canvas"),200);
+}
+
+function drawQR(text, canvasId){
+  const canvas=document.getElementById(canvasId);
+  if(!canvas) return;
+  const ctx=canvas.getContext("2d");
+  const size=200;
+  
+  // Use qrcode-generator library via script tag
+  const script=document.createElement("script");
+  script.src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js";
+  script.onload=function(){
+    try{
+      const qr=qrcode(0,"M");
+      qr.addData(text);
+      qr.make();
+      const modules=qr.getModuleCount();
+      const cell=Math.floor(size/modules);
+      const off=Math.floor((size-cell*modules)/2);
+      ctx.fillStyle="#ffffff";
+      ctx.fillRect(0,0,size,size);
+      ctx.fillStyle="#1a1a1a";
+      for(let r=0;r<modules;r++){
+        for(let c=0;c<modules;c++){
+          if(qr.isDark(r,c)){
+            ctx.fillRect(off+c*cell,off+r*cell,cell,cell);
+          }
+        }
+      }
+    }catch(e){
+      console.error("QR error:",e);
+      ctx.fillStyle="#f9f8f5";
+      ctx.fillRect(0,0,size,size);
+      ctx.fillStyle="#1e3a28";
+      ctx.font="bold 13px Georgia";
+      ctx.textAlign="center";
+      ctx.fillText("Link kopieren",100,92);
+      ctx.font="13px Georgia";
+      ctx.fillStyle="#7a6a55";
+      ctx.fillText("und teilen ↓",100,114);
+    }
+  };
+  script.onerror=function(){
+    ctx.fillStyle="#f9f8f5";
+    ctx.fillRect(0,0,size,size);
+    ctx.fillStyle="#1e3a28";
+    ctx.font="bold 13px Georgia";
+    ctx.textAlign="center";
+    ctx.fillText("Link kopieren",100,92);
+    ctx.font="13px Georgia";
+    ctx.fillStyle="#7a6a55";
+    ctx.fillText("und teilen ↓",100,114);
+  };
+  document.head.appendChild(script);
 }
 
 function copyLink(url){
@@ -987,11 +1024,19 @@ function updateProfile(){
 }
 
 // ── Auth ───────────────────────────────────────────────────────────────────
-function flipCard(){
-  document.getElementById("bigcard-inner").classList.toggle("flipped");
+function showRegister(){
+  document.getElementById("card-login").style.display="none";
+  document.getElementById("card-register").style.display="block";
   document.getElementById("auth-err").textContent="";
   document.getElementById("auth-err-back").textContent="";
 }
+function showLogin(){
+  document.getElementById("card-register").style.display="none";
+  document.getElementById("card-login").style.display="block";
+  document.getElementById("auth-err").textContent="";
+  document.getElementById("auth-err-back").textContent="";
+}
+function flipCard(){ showRegister(); }
 
 async function doAuth(){
   const email=document.getElementById("auth-email").value.trim();
@@ -1042,7 +1087,7 @@ async function logout(){
   document.getElementById("auth-email").value="";
   document.getElementById("auth-pw").value="";
   document.getElementById("auth-err").textContent="";
-  document.getElementById("bigcard-inner").classList.remove("flipped");
+  showLogin();
 }
 
 async function checkSession(){
