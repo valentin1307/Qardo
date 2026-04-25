@@ -326,9 +326,8 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
       </div>
       <div style="background:#f9f8f5;border-radius:14px;border:0.5px solid var(--border);padding:0 14px;margin-bottom:16px;">
         <div class="info-row"><div class="info-icon-wrap" style="background:#e8f4ec;">🌿</div><div><div class="info-label">Version</div><div class="info-value">Qardo v1.0</div></div></div>
-        <div class="info-row" style="border:none;"><div class="info-icon-wrap" style="background:#f0ece4;">✦</div><div><div class="info-label">Plan</div><div class="info-value" id="plan-label">Free — 1 Karte</div></div></div>
+
       </div>
-      <button class="btn btn-gold" onclick="showPaywall()" style="margin-bottom:10px;">Upgrade auf Pro ✦</button>
       <button class="btn btn-light" onclick="logout()" style="margin-top:0;">Abmelden</button>
     </div>
     <div class="tab-bar">
@@ -465,31 +464,6 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 
 </div>
 
-<!-- ══ PAYWALL ══ -->
-<div class="overlay" id="paywall" onclick="hidePaywall(event)">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div style="font-size:11px;color:var(--gold);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;font-family:Georgia,serif;text-align:center;">✦ Pro</div>
-    <div style="font-size:20px;color:#1a1a1a;font-family:Georgia,serif;text-align:center;margin-bottom:6px;">Mehr Karten erstellen</div>
-    <div style="font-size:13px;color:#7a6a55;text-align:center;line-height:1.6;margin-bottom:20px;">Deine erste Karte ist kostenlos.<br>Weitere Karten mit Qardo Pro.</div>
-    <div style="background:#fff;border-radius:14px;border:0.5px solid var(--border);padding:14px;margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:0.5px solid var(--border);">
-        <div><div style="font-size:14px;font-weight:600;color:#1a1a1a;font-family:Georgia,serif;">Pro · Monatlich</div><div style="font-size:11px;color:#7a6a55;">Unbegrenzte Karten</div></div>
-        <div style="text-align:right;"><div style="font-size:18px;font-weight:600;color:#1a1a1a;font-family:Georgia,serif;">€ 2,99</div><div style="font-size:10px;color:#7a6a55;">/ Monat</div></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div><div style="font-size:14px;font-weight:600;color:#1a1a1a;font-family:Georgia,serif;">Pro · Jährlich</div><div style="font-size:11px;color:#8fba8a;">2 Monate gratis</div></div>
-        <div style="text-align:right;"><div style="font-size:18px;font-weight:600;color:#1a1a1a;font-family:Georgia,serif;">€ 24,99</div><div style="font-size:10px;color:#7a6a55;">/ Jahr</div></div>
-      </div>
-    </div>
-    <div style="font-size:12px;color:#4a4030;font-family:Georgia,serif;margin-bottom:5px;">✦ Unbegrenzte Visitenkarten</div>
-    <div style="font-size:12px;color:#4a4030;font-family:Georgia,serif;margin-bottom:5px;">✦ Alle 8 Design-Vorlagen</div>
-    <div style="font-size:12px;color:#4a4030;font-family:Georgia,serif;margin-bottom:16px;">✦ LinkedIn, Xing & Instagram</div>
-    <button class="btn btn-dark" onclick="upgradeToPro();hidePaywall();" style="margin-bottom:10px;">Jetzt upgraden</button>
-    <button class="btn btn-light" onclick="hidePaywall()">Vielleicht später</button>
-  </div>
-</div>
-
 <!-- ══ TOAST ══ -->
 <div class="toast" id="toast"></div>
 
@@ -529,7 +503,6 @@ const supa = supabase.createClient(SUPA_URL, SUPA_KEY, {
 // ── State ──────────────────────────────────────────────────────────────────
 let myCards   = [];
 let wallet    = [];
-let isPro     = false; // loaded from Supabase user metadata
 let currentUser = null;
 let editId    = null;
 let editTpl   = "cotton";
@@ -603,7 +576,6 @@ async function deleteWalletFromDB(dbId){
 
 // ── Save (legacy local fallback) ───────────────────────────────────────────
 function save(){
-  // isPro stored in Supabase, not locally
 }
 
 // ── Clock ──────────────────────────────────────────────────────────────────
@@ -731,9 +703,9 @@ function renderHome(){
   });
   // Add new card tile
   if(myCards.length>0){
-    html+=`<div onclick="${isPro?"newCard()":"showPaywall()"}" style="width:242px;height:139px;border-radius:8px;border:1.5px dashed #c8b99a;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:6px;background:#fdf9f4;margin-bottom:20px;">
+    html+=`<div onclick="newCard()" style="width:242px;height:139px;border-radius:8px;border:1.5px dashed #c8b99a;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:6px;background:#fdf9f4;margin-bottom:20px;">
       <div style="font-size:24px;color:#c8b99a;">+</div>
-      <div style="font-size:11px;color:#7a6a55;font-family:Georgia,serif;">${isPro?"Neue Karte":"✦ Pro erforderlich"}</div>
+      <div style="font-size:11px;color:#7a6a55;font-family:Georgia,serif;">Neue Karte</div>
     </div>`;
   }
   body.innerHTML=html;
@@ -881,7 +853,7 @@ function shareNative(url,name){
 
 // ── Editor ─────────────────────────────────────────────────────────────────
 function newCard(){
-  if(myCards.length>=1&&!isPro){ showPaywall(); return; }
+  
   editId=null; editTpl="cotton"; editFont="georgia"; editLogo=null;
   document.getElementById("editor-title").textContent="Neue Karte";
   clearEditorFields();
@@ -1039,8 +1011,7 @@ async function removeWallet(idx){
 }
 
 // ── Paywall ────────────────────────────────────────────────────────────────
-function showPaywall(){ document.getElementById("paywall").classList.add("show"); }
-function hidePaywall(e){ if(!e||e.target===document.getElementById("paywall")) document.getElementById("paywall").classList.remove("show"); }
+
 
 // ── URL card loading (incoming shared card) ────────────────────────────────
 function checkIncoming(){
@@ -1139,7 +1110,6 @@ function updateProfile(){
     document.getElementById("profile-name").textContent=c.name;
     document.getElementById("profile-email").textContent=c.email||"";
   }
-  document.getElementById("plan-label").textContent=isPro?"Pro — Unbegrenzte Karten":"Free — 1 Karte";
 }
 
 // ── Auth ───────────────────────────────────────────────────────────────────
@@ -1203,8 +1173,6 @@ async function doRegister(){
 
 async function startApp(user){
   currentUser=user;
-  // Load isPro from user metadata
-  isPro = user.user_metadata?.is_pro === true;
   // Show app immediately with loading state
   document.getElementById("auth-wrap").style.display="none";
   document.getElementById("app-wrap").style.display="flex";
@@ -1220,12 +1188,6 @@ async function startApp(user){
   checkPendingCard();
 }
 
-async function upgradeToPro(){
-  if(!currentUser) return;
-  // In production this would be after payment — for now simulate
-  const {data,error} = await supa.auth.updateUser({data:{is_pro:true}});
-  if(!error){ isPro=true; renderHome(); updateProfile(); toast("✦ Upgrade erfolgreich!"); }
-}
 
 async function logout(){
   if(!confirm("Wirklich abmelden?"))return;
