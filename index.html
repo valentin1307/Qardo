@@ -610,18 +610,26 @@ function goBack(){
 }
 function goTab(tab){
   activeTab=tab;
+  // Hide all screens
   ["home","wallet","profile"].forEach(t=>{
     const sc=document.getElementById("sc-"+t);
-    const tabs=document.querySelectorAll(".tab");
-    sc.classList.remove("active","behind");
-    if(t===tab){ sc.classList.add("active"); screenStack=["sc-"+t]; }
+    if(sc) sc.classList.remove("active","behind");
   });
+  // Also hide sub-screens
+  ["detail","share","editor","wallet-detail"].forEach(t=>{
+    const sc=document.getElementById("sc-"+t);
+    if(sc) sc.classList.remove("active","behind");
+  });
+  // Show selected tab screen
+  const active=document.getElementById("sc-"+tab);
+  if(active){ active.classList.add("active"); screenStack=["sc-"+tab]; }
+  // Update tab bar indicators
   document.querySelectorAll(".tab").forEach((el,i)=>{
     const labels=["home","wallet","profile"];
     el.classList.toggle("active",labels[i]===tab);
   });
-  if(tab==="home")    renderHome();
-  if(tab==="wallet")  renderWallet();
+  if(tab==="home")   renderHome();
+  if(tab==="wallet") renderWallet();
 }
 
 // ── Font helper ────────────────────────────────────────────────────────────
@@ -1076,14 +1084,15 @@ async function checkPendingCard(){
     if(!c.name) return;
     // Ask user if they want to save
     const banner=document.createElement("div");
+    banner.className="pending-banner";
     banner.style.cssText="position:fixed;top:0;left:50%;transform:translateX(-50%);max-width:390px;width:100%;background:#1e3a28;color:#faf7f0;padding:14px 16px;z-index:500;display:flex;align-items:center;justify-content:space-between;gap:10px;";
-    banner.innerHTML=`<div style="font-family:Georgia,serif;font-size:13px;">Karte von <b>${c.name}</b> speichern?</div><div style="display:flex;gap:8px;"><button onclick="this.closest('div[style]').remove();sessionStorage.removeItem('pending_card')" style="background:rgba(255,255,255,0.15);border:none;color:#faf7f0;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Georgia,serif;font-size:12px;">Nein</button><button onclick="savePendingCardFromBanner('${encodeURIComponent(raw)}')" style="background:#c8a96e;border:none;color:#1a1a1a;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Georgia,serif;font-size:12px;font-weight:600;">Speichern ✦</button></div>`;
+    banner.innerHTML=`<div style="font-family:Georgia,serif;font-size:13px;">Karte von <b>${c.name}</b> speichern?</div><div style="display:flex;gap:8px;"><button onclick="document.querySelectorAll('.pending-banner').forEach(b=>b.remove());sessionStorage.removeItem('pending_card')" style="background:rgba(255,255,255,0.15);border:none;color:#faf7f0;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Georgia,serif;font-size:12px;">Nein</button><button onclick="savePendingCardFromBanner('${encodeURIComponent(raw)}')" style="background:#c8a96e;border:none;color:#1a1a1a;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Georgia,serif;font-size:12px;font-weight:600;">Speichern ✦</button></div>`;
     document.body.appendChild(banner);
   }catch(e){ sessionStorage.removeItem("pending_card"); }
 }
 
 async function savePendingCardFromBanner(encoded){
-  document.querySelector("div[style*='position:fixed']")?.remove();
+  document.querySelectorAll(".pending-banner").forEach(b=>b.remove());
   try{
     const c=JSON.parse(decodeURIComponent(encoded));
     await savePendingCard(c);
