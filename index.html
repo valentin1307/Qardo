@@ -225,7 +225,6 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
         Erstelle eine klassische Visitenkarte für dein Handy. Teile sie per QR-Code — kein Papier, kein Chip, kein Aufwand.
       </p>
       <button onclick="showAuth()" style="width:100%;max-width:280px;padding:15px;border-radius:12px;background:#1e3a28;color:#faf7f0;border:none;font-family:Georgia,serif;font-size:15px;cursor:pointer;margin-bottom:10px;">Kostenlos starten ✦</button>
-      <div style="font-size:11px;color:#aaa;font-family:Georgia,serif;">Kein Abo. Keine Kreditkarte.</div>
     </div>
 
     <!-- Features -->
@@ -371,7 +370,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
     </div>
   </div>
 
-  <div class="auth-footer">Qardo v1.4 · Deine Daten bleiben auf deinem Gerät</div>
+  <div class="auth-footer"></div>
 </div>
 
 <div class="phone-wrap" id="app-wrap" style="display:none;">
@@ -1404,14 +1403,33 @@ async function saveScannedCard(encoded){
   }catch(e){ toast("Fehler beim Speichern"); }
 }
 
+// ── Landing Page ──────────────────────────────────────────────────────────
+function showLanding(){
+  document.getElementById("landing-wrap").style.display="block";
+  document.getElementById("auth-wrap").style.display="none";
+  document.getElementById("app-wrap").style.display="none";
+}
+function showAuth(){
+  document.getElementById("landing-wrap").style.display="none";
+  document.getElementById("auth-wrap").style.display="flex";
+}
+function toggleLang(){
+  const sec=document.getElementById("en-section");
+  const btn=document.getElementById("lang-toggle");
+  const visible=sec.style.display!=="none";
+  sec.style.display=visible?"none":"block";
+  btn.textContent=visible?"View in English":"Auf Deutsch anzeigen";
+}
+
 // ── Init ───────────────────────────────────────────────────────────────────
-// If sharing URL — show card immediately, no login needed
 if(checkIncoming()){
-  // done — card view shown, no further init needed
+  // Shared card — show directly, no landing page
 } else {
   (async()=>{
     const ok = await checkSession();
-    if(!ok){ renderHome(); renderWallet(); updateProfile(); }
+    if(!ok){
+      showLanding();
+    }
   })();
 }
 </script>
