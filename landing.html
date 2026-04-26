@@ -266,7 +266,7 @@ nav {
 .card-showcase {
   position: relative;
   margin-top: 60px;
-  height: 200px;
+  height: 220px;
   width: 100%;
   max-width: 500px;
 }
@@ -809,19 +809,40 @@ footer {
 
   <!-- Card stack -->
   <div class="card-showcase">
-    <!-- Navy only -->
-    <div class="showcase-card" style="left:50%;transform:translateX(-50%);top:20px;z-index:3;width:300px;height:173px;position:absolute;background:#1e3a6e;border-radius:10px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,0.45);">
+    <!-- Noir -->
+    <div class="showcase-card sc1">
       <div style="position:absolute;inset:0;opacity:0.08;background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:10px 10px;"></div>
-      <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#a8b8d8;"></div>
-      <div style="position:absolute;top:26px;left:16%;right:6%;height:0.5px;background:#2d5196;opacity:1;"></div>
-      <div style="position:absolute;bottom:26px;left:16%;right:6%;height:0.5px;background:#2d5196;opacity:1;"></div>
-      <div style="position:absolute;top:10px;right:14px;font-size:9px;color:#a8b8d8;opacity:0.6;font-family:'Playfair Display',serif;">✦</div>
-      <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:20px 16px 18px 24px;">
-        <div style="font-family:'Playfair Display',serif;font-size:18px;color:#eef2fa;letter-spacing:0.3px;margin-bottom:3px;">Max Mustermann</div>
-        <div style="font-size:8px;color:#a8b8d8;letter-spacing:3px;text-transform:uppercase;margin-bottom:16px;">Product Designer · Qardo</div>
-        <div style="font-size:8px;color:#a8b8d8;margin-bottom:3px;">max@qardo.app</div>
-        <div style="font-size:8px;color:#a8b8d8;opacity:0.7;">qardo.app/max</div>
+      <div class="card-bar" style="background:#c8a96e;"></div>
+      <div class="card-content">
+        <div class="card-name" style="font-size:14px;color:#f5f0e8;letter-spacing:0.3px;">Max Mustermann</div>
+        <div class="card-title" style="color:#c8a96e;">Product Designer · Qardo</div>
+        <div class="card-contact" style="color:#c8a96e;">max@qardo.app</div>
       </div>
+      <div class="card-ornament" style="color:#c8a96e;">✦</div>
+    </div>
+    <!-- Navy -->
+    <div class="showcase-card sc2">
+      <div style="position:absolute;inset:0;opacity:0.08;background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:10px 10px;"></div>
+      <div class="card-bar" style="background:#a8b8d8;"></div>
+      <div class="card-content">
+        <div class="card-name" style="font-size:14px;color:#eef2fa;letter-spacing:0.3px;">Max Mustermann</div>
+        <div class="card-title" style="color:#a8b8d8;">Product Designer · Qardo</div>
+        <div class="card-contact" style="color:#a8b8d8;">max@qardo.app</div>
+      </div>
+      <div class="card-ornament" style="color:#a8b8d8;">✦</div>
+    </div>
+    <!-- Cotton (front) -->
+    <div class="showcase-card sc3">
+      <div style="position:absolute;inset:0;opacity:0.04;background-image:repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 0,transparent 8px);"></div>
+      <div class="card-bar" style="background:#2a2a2a;"></div>
+      <div style="position:absolute;top:22px;left:14%;right:6%;height:0.5px;background:#c8b99a;opacity:0.4;"></div>
+      <div style="position:absolute;bottom:22px;left:14%;right:6%;height:0.5px;background:#c8b99a;opacity:0.4;"></div>
+      <div class="card-content">
+        <div class="card-name" style="font-size:14px;color:#1a1a1a;letter-spacing:0.3px;">Max Mustermann</div>
+        <div class="card-title" style="color:#7a6a55;">Product Designer · Qardo</div>
+        <div class="card-contact" style="color:#7a6a55;">max@qardo.app</div>
+      </div>
+      <div class="card-ornament" style="color:#7a6a55;">✦</div>
     </div>
   </div>
 </section>
@@ -829,7 +850,7 @@ footer {
 <!-- BETA BANNER -->
 <div class="beta-section">
   <span class="beta-icon">🔧</span>
-  <span class="beta-text"><strong>Qardo befindet sich aktuell in der Beta-Phase.</strong> Features werden laufend hinzugefügt.</span>
+  <span class="beta-text"><strong>Qardo befindet sich aktuell in der Beta-Phase.</strong> Features werden laufend hinzugefügt. Feedback ist willkommen.</span>
   <div class="beta-phase">
     <span class="phase-step done">✓ Alpha</span>
     <span class="phase-step active">● Beta</span>
@@ -1115,6 +1136,7 @@ footer {
 <!-- CTA -->
 <section class="cta-section">
   <h2>Deine Karte.<br>Dein Stil.</h2>
+  <p>Jetzt kostenlos starten — keine Kreditkarte, kein Abo.</p>
   <a href="https://qardo-zeta.vercel.app" class="btn-hero">App öffnen →</a>
 </section>
 
