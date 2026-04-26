@@ -953,14 +953,14 @@ function renderWallet(){
     html+=`<div class="sec">Gesammelt</div>`;
     wallet.forEach((c,i)=>{
       const tName=TEMPLATES.find(t=>t.id===c.template)?.name||"";
+      const initials=(c.name||"?").split(" ").map(p=>p[0]||"").join("").toUpperCase().slice(0,2);
+      const sub=c.title?c.title+(c.company?" · "+c.company:""):c.company||c.email||"";
       html+=`
       <div onclick="openWalletDetail(${i})" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f9f8f5;border-radius:12px;border:0.5px solid var(--border);cursor:pointer;margin-bottom:8px;">
-        <div style="width:44px;height:44px;border-radius:50%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-family:Georgia,serif;flex-shrink:0;font-weight:normal;">
-          ${(c.name||"?").split(" ").map(p=>p[0]||"").join("").toUpperCase().slice(0,2)}
-        </div>
+        <div style="width:44px;height:44px;border-radius:50%;background:#2a2a2a;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-family:Georgia,serif;flex-shrink:0;font-weight:normal;">${initials}</div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;color:#1a1a1a;font-family:Georgia,serif;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
-          <div style="font-size:11px;color:#7a7a7a;font-family:Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.title?c.title+(c.company?" · "+c.company:""):c.company||c.email||""}</div>
+          <div style="font-size:11px;color:#7a7a7a;font-family:Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sub}</div>
         </div>
         <div style="font-size:16px;color:#a8b8d8;">›</div>
       </div>`;
@@ -1075,6 +1075,9 @@ function openShare(idx){
   const logoUrl=c.logo&&!c.logo.startsWith("data:")? c.logo:"";
   const cardData={name:c.name,title:c.title,company:c.company,email:c.email,phone:c.phone,website:c.website,template:c.template,font:c.font||"georgia",logo:logoUrl,linkedin:c.linkedin||"",xing:c.xing||"",instagram:c.instagram||"",owner_id:currentUser.id};
   const shareUrl=`${location.origin}${location.pathname}?card=${encodeURIComponent(JSON.stringify(cardData))}`;
+  // Store in sessionStorage as backup for AirDrop (URL params sometimes stripped)
+  sessionStorage.setItem("shared_card", JSON.stringify(cardData));
+  
   document.getElementById("share-body").innerHTML=`
     <div class="fadein" style="margin-bottom:16px;">${buildCard(c,c.template,false)}</div>
     <div style="background:#f5f3ee;border-radius:10px;padding:8px 14px;margin-bottom:14px;width:100%;text-align:center;">
@@ -1324,10 +1327,10 @@ function openWalletDetail(idx){
   goTo("sc-wallet-detail");
 }
 async function removeWallet(idx){
-  const dbId=wallet[idx]?.id;
-  await deleteWalletFromDB(dbId);
+  const dbId=wallet[idx]?.db_id||wallet[idx]?.id;
+  if(dbId) await deleteWalletFromDB(dbId);
   wallet.splice(idx,1);
-  goBack(); renderWallet();
+  goBack(); goBack(); renderWallet();
 }
 
 // ── Paywall ────────────────────────────────────────────────────────────────
@@ -1336,7 +1339,12 @@ async function removeWallet(idx){
 // ── URL card loading (incoming shared card) ────────────────────────────────
 function checkIncoming(){
   const params=new URLSearchParams(location.search);
-  const raw=params.get("card");
+  let raw=params.get("card");
+  // AirDrop fallback: check sessionStorage if no URL param
+  if(!raw){
+    const stored=sessionStorage.getItem("incoming_card");
+    if(stored){ raw=stored; sessionStorage.removeItem("incoming_card"); }
+  }
   if(!raw) return false;
   try{
     const c=JSON.parse(decodeURIComponent(raw));
