@@ -444,6 +444,17 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
     </div>
   </div>
 
+  <!-- ══ ANALYTICS ══ -->
+  <div class="screen" id="sc-analytics">
+    <div class="back-row">
+      <button class="back-btn" onclick="goBack()">‹</button>
+      <div class="back-title">Scan-Statistiken</div>
+    </div>
+    <div class="body" id="analytics-body">
+      <div style="text-align:center;padding:20px;color:#aaa;font-family:Georgia,serif;font-size:13px;">Wird geladen...</div>
+    </div>
+  </div>
+
   <!-- ══ CREATE TEAM ══ -->
   <div class="screen" id="sc-create-team">
     <div class="back-row">
@@ -495,6 +506,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
         <div class="info-row"><div class="info-icon-wrap" style="background:#e8f4ec;">🌿</div><div><div class="info-label">Version</div><div class="info-value">Qardo v1.0</div></div></div>
 
       </div>
+      <button class="btn btn-light" onclick="openAnalytics()" style="margin-bottom:10px;">📊 Scan-Statistiken</button>
       <button class="btn btn-light" onclick="logout()" style="margin-top:0;">Abmelden</button>
     </div>
     <div class="tab-bar">
@@ -938,7 +950,7 @@ function openShare(idx){
   if(!c) return;
   // Logo is now a short Supabase URL — safe to include
   const logoUrl=c.logo&&!c.logo.startsWith("data:")? c.logo:"";
-  const cardData={name:c.name,title:c.title,company:c.company,email:c.email,phone:c.phone,website:c.website,template:c.template,font:c.font||"georgia",logo:logoUrl,linkedin:c.linkedin||"",xing:c.xing||"",instagram:c.instagram||""};
+  const cardData={name:c.name,title:c.title,company:c.company,email:c.email,phone:c.phone,website:c.website,template:c.template,font:c.font||"georgia",logo:logoUrl,linkedin:c.linkedin||"",xing:c.xing||"",instagram:c.instagram||"",owner_id:currentUser.id};
   const shareUrl=`${location.origin}${location.pathname}?card=${encodeURIComponent(JSON.stringify(cardData))}`;
   document.getElementById("share-body").innerHTML=`
     <div class="fadein" style="margin-bottom:16px;">${buildCard(c,c.template,false)}</div>
@@ -1206,6 +1218,10 @@ function checkIncoming(){
   try{
     const c=JSON.parse(decodeURIComponent(raw));
     if(!c.name) return false;
+    // Track scan anonymously
+    if(c.owner_id){
+      supa.from("card_scans").insert({card_owner_id:c.owner_id,referrer:document.referrer||""}).then(()=>{});
+    }
     // Show card immediately — hide auth, show app shell with card view
     document.getElementById("auth-wrap").style.display="none";
     document.getElementById("app-wrap").style.display="flex";
@@ -1261,6 +1277,25 @@ async function savePendingCard(c){
   toast("Karte im Wallet gespeichert ✦");
   // Switch to wallet tab
   setTimeout(()=>goTab("wallet"), 500);
+}
+
+async function checkTeamInvite(){
+  if(!currentUser||myTeam) return;
+  // Check if invited by email
+  const {data:invite}=await supa.from("team_members")
+    .select("*").eq("invited_email",currentUser.email).eq("user_id","pending").single();
+  if(!invite) return;
+  // Accept invite — update user_id
+  await supa.from("team_members").update({user_id:currentUser.id}).eq("id",invite.id);
+  // Load team
+  const {data:team}=await supa.from("teams").select("*").eq("id",invite.team_id).single();
+  if(team){
+    myTeam=team;
+    const {data:members}=await supa.from("team_members").select("*").eq("team_id",myTeam.id);
+    teamMembers=members||[];
+    toast(`✦ Team "${team.name}" beigetreten!`);
+    renderTeam();
+  }
 }
 
 async function checkPendingCard(){
@@ -1372,6 +1407,7 @@ async function startApp(user){
   renderWallet();
   updateProfile();
   checkPendingCard();
+  checkTeamInvite();
 }
 
 
@@ -1480,6 +1516,76 @@ async function saveScannedCard(encoded){
     goBack();
     renderWallet();
   }catch(e){ toast("Fehler beim Speichern"); }
+}
+
+// ── Analytics ─────────────────────────────────────────────────────────────
+async function openAnalytics(){
+  goTo("sc-analytics");
+  const body=document.getElementById("analytics-body");
+  body.innerHTML=`<div style="text-align:center;padding:20px;color:#aaa;font-family:Georgia,serif;font-size:13px;">Wird geladen...</div>`;
+  
+  const {data:scans,error}=await supa.from("card_scans").select("*").eq("card_owner_id",currentUser.id).order("scanned_at",{ascending:false});
+  
+  if(error||!scans||!scans.length){
+    body.innerHTML=`<div class="empty"><div class="empty-icon">📊</div><div class="empty-title">Noch keine Scans</div><div class="empty-sub">Teile deine Karte — hier siehst du wann und wie oft sie gescannt wurde.</div></div>`;
+    return;
+  }
+
+  // Group by day
+  const byDay={};
+  scans.forEach(s=>{
+    const day=s.scanned_at.split("T")[0];
+    byDay[day]=(byDay[day]||0)+1;
+  });
+  const days=Object.entries(byDay).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,7);
+  const maxVal=Math.max(...days.map(d=>d[1]));
+
+  // Today's scans
+  const today=new Date().toISOString().split("T")[0];
+  const todayCount=byDay[today]||0;
+  const totalCount=scans.length;
+  const last7=days.reduce((s,d)=>s+d[1],0);
+
+  body.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;">
+      <div style="background:#f9f8f5;border-radius:12px;padding:14px;text-align:center;border:0.5px solid var(--border);">
+        <div style="font-size:24px;font-weight:600;color:#1e3a6e;font-family:Georgia,serif;">${totalCount}</div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px;">Gesamt</div>
+      </div>
+      <div style="background:#f9f8f5;border-radius:12px;padding:14px;text-align:center;border:0.5px solid var(--border);">
+        <div style="font-size:24px;font-weight:600;color:#1e3a6e;font-family:Georgia,serif;">${last7}</div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px;">7 Tage</div>
+      </div>
+      <div style="background:#f9f8f5;border-radius:12px;padding:14px;text-align:center;border:0.5px solid var(--border);">
+        <div style="font-size:24px;font-weight:600;color:#1e3a6e;font-family:Georgia,serif;">${todayCount}</div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px;">Heute</div>
+      </div>
+    </div>
+    <div class="sec">Letzte 7 Tage</div>
+    <div style="background:#f9f8f5;border-radius:14px;border:0.5px solid var(--border);padding:16px;margin-bottom:16px;">
+      ${days.map(([day,count])=>{
+        const pct=Math.round((count/maxVal)*100);
+        const label=new Date(day).toLocaleDateString("de-AT",{weekday:"short",day:"numeric",month:"numeric"});
+        return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="font-size:11px;color:#aaa;width:60px;flex-shrink:0;">${label}</div>
+          <div style="flex:1;background:#e8eef8;border-radius:4px;height:8px;overflow:hidden;">
+            <div style="width:${pct}%;height:100%;background:#1e3a6e;border-radius:4px;transition:width 0.4s;"></div>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:#1e3a6e;width:20px;text-align:right;">${count}</div>
+        </div>`;
+      }).join("")}
+    </div>
+    <div class="sec">Letzte Scans</div>
+    <div style="background:#f9f8f5;border-radius:14px;border:0.5px solid var(--border);padding:0 14px;">
+      ${scans.slice(0,10).map(s=>{
+        const d=new Date(s.scanned_at);
+        const label=d.toLocaleDateString("de-AT",{day:"2-digit",month:"short"})+" · "+d.toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"});
+        return `<div class="info-row" style="border-bottom:0.5px solid #ede8df;">
+          <div class="info-icon-wrap" style="background:#e8eef8;font-size:14px;">👁</div>
+          <div><div class="info-label">Scan</div><div class="info-value">${label}</div></div>
+        </div>`;
+      }).join("")}
+    </div>`;
 }
 
 // ── Team State ────────────────────────────────────────────────────────────
