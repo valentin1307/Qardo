@@ -896,20 +896,30 @@ function renderWallet(){
   document.getElementById("wallet-count").textContent=total+" Karten";
   let html="";
 
-  // Team card section
+  // Team section
   if(myTeam){
-    const teamCard={
+    const myTeamCard={
       name:currentUser.user_metadata?.name||currentUser.email,
       title:"",company:myTeam.name,
       email:currentUser.email,phone:"",website:"",
       template:myTeam.template,font:"georgia",
       logo:myTeam.logo||""
     };
-    html+=`<div class="sec">Mein Team · ${myTeam.name}</div>
-    <div class="wallet-row fadein" onclick="openTeamCard()">
-      ${buildCard(teamCard,myTeam.template,true)}
-      <div class="wallet-meta"><span class="wallet-tpl-name">Team-Karte · ${TEMPLATES.find(t=>t.id===myTeam.template)?.name||""}</span><span class="wallet-tap">Tippen ›</span></div>
+    html+=`<div class="sec">◫ ${myTeam.name}</div>`;
+    // My own team card
+    html+=`<div class="wallet-row fadein" onclick="openTeamCard()">
+      ${buildCard(myTeamCard,myTeam.template,true)}
+      <div class="wallet-meta"><span class="wallet-tpl-name">Meine Team-Karte</span><span class="wallet-tap">Tippen ›</span></div>
     </div>`;
+    // Other team members' cards
+    if(teamCards.length){
+      teamCards.forEach((c,i)=>{
+        html+=`<div class="wallet-row fadein" onclick="openTeamMemberCard(${i})">
+          ${buildCard(c,c.template,true)}
+          <div class="wallet-meta"><span class="wallet-tpl-name">${c.name||c.memberEmail}</span><span class="wallet-tap">Tippen ›</span></div>
+        </div>`;
+      });
+    }
     if(wallet.length) html+=`<div class="sec" style="margin-top:8px;">Gesammelt</div>`;
   }
 
@@ -925,6 +935,23 @@ function renderWallet(){
     </div>`;
   });
   body.innerHTML=html;
+}
+
+function openTeamMemberCard(idx){
+  const c=teamCards[idx];
+  if(!c) return;
+  document.getElementById("wdetail-name").textContent=c.name||"Teammitglied";
+  const socials=SOCIALS.map(s=>c[s.key]?`<a href="https://${s.prefix}${c[s.key]}" target="_blank" class="social-badge"><div class="social-icon" style="background:${s.color};">${s.icon}</div><div><div class="social-label">${s.label}</div><div class="social-handle">@${c[s.key]}</div></div><div class="info-arrow">›</div></a>`:"").join("");
+  document.getElementById("wdetail-body").innerHTML=`
+    <div class="fadein" style="display:flex;justify-content:center;margin-bottom:14px;">${buildCard(c,c.template,false)}</div>
+    <div style="background:#eef2fa;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#1e3a6e;font-family:Georgia,serif;">✦ Teammitglied · ${myTeam?.name||""}</div>
+    <div style="background:#faf8f4;border-radius:14px;border:0.5px solid var(--border);padding:0 14px;margin-bottom:12px;">
+      ${c.email?`<a href="mailto:${c.email}" class="info-row" style="text-decoration:none;"><div class="info-icon-wrap" style="background:#e8f0ff;">✉</div><div><div class="info-label">E-Mail</div><div class="info-value" style="color:#1a5aaa;">${c.email}</div></div><div class="info-arrow">›</div></a>`:""}
+      ${c.phone?`<a href="tel:${c.phone}" class="info-row" style="text-decoration:none;"><div class="info-icon-wrap" style="background:#e8ffe8;">☎</div><div><div class="info-label">Telefon</div><div class="info-value" style="color:#1a5aaa;">${c.phone}</div></div><div class="info-arrow">›</div></a>`:""}
+      ${c.website?`<a href="${c.website}" target="_blank" class="info-row" style="text-decoration:none;border:none;"><div class="info-icon-wrap" style="background:#fff0e8;">⌂</div><div><div class="info-label">Website</div><div class="info-value" style="color:#1a5aaa;">${c.website}</div></div><div class="info-arrow">›</div></a>`:""}
+    </div>
+    ${socials}`;
+  goTo("sc-wallet-detail");
 }
 
 function openTeamCard(){
@@ -1370,8 +1397,10 @@ async function acceptTeamInvite(inviteId, teamId, btn){
     myTeam=team;
     const {data:members}=await supa.from("team_members").select("*").eq("team_id",myTeam.id);
     teamMembers=members||[];
+    await loadTeamCards();
     toast(`✦ Team "${team.name}" beigetreten!`);
     renderTeam();
+    renderWallet();
   }
 }
 
@@ -1677,6 +1706,8 @@ let teamMembers = [];
 let editTeamTpl = "navy";
 let editTeamLogo = "";
 
+let teamCards = []; // Cards from all team members
+
 async function loadTeam(){
   if(!currentUser) return;
   // Check if user owns a team
@@ -1693,6 +1724,28 @@ async function loadTeam(){
   if(myTeam){
     const {data:members} = await supa.from("team_members").select("*").eq("team_id", myTeam.id);
     teamMembers=members||[];
+    // Load cards from all team members (excluding self)
+    await loadTeamCards();
+  }
+}
+
+async function loadTeamCards(){
+  if(!myTeam) return;
+  teamCards=[];
+  const otherMembers=teamMembers.filter(m=>m.user_id!==currentUser.id&&m.user_id!=="pending");
+  for(const m of otherMembers){
+    const {data:cards}=await supa.from("cards").select("*").eq("user_id",m.user_id).order("created_at");
+    if(cards&&cards.length){
+      // Get the first card and apply team template
+      const c=cards[0];
+      teamCards.push({
+        ...c,
+        template:myTeam.template,
+        logo:myTeam.logo||c.logo||"",
+        memberEmail:m.invited_email||"",
+        db_id:c.id
+      });
+    }
   }
 }
 
