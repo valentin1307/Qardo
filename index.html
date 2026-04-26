@@ -386,8 +386,9 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
     </div>
     <div class="body" id="home-body"></div>
     <div class="tab-bar">
-      <button class="tab active" onclick="goTab('home')"><div class="tab-icon">◈</div><div class="tab-label">Meine Karte</div></button>
+      <button class="tab active" onclick="goTab('home')"><div class="tab-icon">◈</div><div class="tab-label">Karte</div></button>
       <button class="tab" onclick="goTab('wallet')"><div class="tab-icon">⊟</div><div class="tab-label">Wallet</div></button>
+      <button class="tab" onclick="goTab('team')"><div class="tab-icon">◫</div><div class="tab-label">Team</div></button>
       <button class="tab" onclick="goTab('profile')"><div class="tab-icon">◉</div><div class="tab-label">Profil</div></button>
     </div>
     <div class="home-ind"><div class="home-bar"></div></div>
@@ -408,14 +409,76 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
     </div>
     <div class="body" id="wallet-body"></div>
     <div class="tab-bar">
-      <button class="tab" onclick="goTab('home')"><div class="tab-icon">◈</div><div class="tab-label">Meine Karte</div></button>
+      <button class="tab" onclick="goTab('home')"><div class="tab-icon">◈</div><div class="tab-label">Karte</div></button>
       <button class="tab active" onclick="goTab('wallet')"><div class="tab-icon">⊟</div><div class="tab-label">Wallet</div></button>
+      <button class="tab" onclick="goTab('team')"><div class="tab-icon">◫</div><div class="tab-label">Team</div></button>
       <button class="tab" onclick="goTab('profile')"><div class="tab-icon">◉</div><div class="tab-label">Profil</div></button>
     </div>
     <div class="home-ind"><div class="home-bar"></div></div>
   </div>
 
   <!-- ══ PROFILE ══ -->
+  <!-- ══ TEAM ══ -->
+  <div class="screen" id="sc-team">
+    <div class="hdr">
+      <div class="hdr-row">
+        <div><div class="app-name">Team</div><div class="app-sub" id="team-subtitle">Kein Team</div></div>
+        <button class="icon-btn" onclick="showCreateTeam()" id="team-action-btn" title="Team erstellen">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="body" id="team-body">
+      <div class="empty">
+        <div class="empty-icon">◫</div>
+        <div class="empty-title">Noch kein Team</div>
+        <div class="empty-sub">Erstelle ein Team und lade deine Kollegen ein. Alle teilen dasselbe Design.</div>
+        <button class="btn btn-dark" onclick="showCreateTeam()">Team erstellen</button>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <button class="tab" onclick="goTab('home')"><div class="tab-icon">◈</div><div class="tab-label">Karte</div></button>
+      <button class="tab" onclick="goTab('wallet')"><div class="tab-icon">⊟</div><div class="tab-label">Wallet</div></button>
+      <button class="tab active" onclick="goTab('team')"><div class="tab-icon">◫</div><div class="tab-label">Team</div></button>
+      <button class="tab" onclick="goTab('profile')"><div class="tab-icon">◉</div><div class="tab-label">Profil</div></button>
+    </div>
+  </div>
+
+  <!-- ══ CREATE TEAM ══ -->
+  <div class="screen" id="sc-create-team">
+    <div class="back-row">
+      <button class="back-btn" onclick="goBack()">‹</button>
+      <div class="back-title" id="create-team-title">Team erstellen</div>
+    </div>
+    <div class="body">
+      <div class="form-group"><label class="form-label">Teamname *</label><input class="form-input" id="team-name" placeholder="Meine Firma GmbH"></div>
+      <div class="form-group">
+        <label class="form-label">Karten-Design für alle</label>
+        <div id="team-tpl-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Firmenlogo (optional)</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="team-logo-preview" style="width:50px;height:34px;border:0.5px solid #d8d0c0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;background:#f9f8f5;overflow:hidden;flex-shrink:0;">🏢</div>
+          <label style="flex:1;padding:10px 14px;border:0.5px solid #d8d0c0;border-radius:10px;font-size:13px;font-family:Georgia,serif;color:#7a6a55;cursor:pointer;text-align:center;background:#f9f8f5;">
+            Logo hochladen
+            <input type="file" id="team-logo-input" accept="image/*" style="display:none;" onchange="handleTeamLogo(this)">
+          </label>
+        </div>
+      </div>
+      <button class="btn btn-dark" onclick="saveTeam()" style="margin-top:8px;">Team speichern</button>
+    </div>
+  </div>
+
+  <!-- ══ TEAM DETAIL ══ -->
+  <div class="screen" id="sc-team-detail">
+    <div class="back-row">
+      <button class="back-btn" onclick="goBack()">‹</button>
+      <div class="back-title" id="team-detail-name">Team</div>
+    </div>
+    <div class="body" id="team-detail-body"></div>
+  </div>
+
   <div class="screen" id="sc-profile">
     <div class="hdr">
       <div class="hdr-row">
@@ -435,8 +498,9 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
       <button class="btn btn-light" onclick="logout()" style="margin-top:0;">Abmelden</button>
     </div>
     <div class="tab-bar">
-      <button class="tab" onclick="goTab('home')"><div class="tab-icon">◈</div><div class="tab-label">Meine Karte</div></button>
+      <button class="tab" onclick="goTab('home')"><div class="tab-icon">◈</div><div class="tab-label">Karte</div></button>
       <button class="tab" onclick="goTab('wallet')"><div class="tab-icon">⊟</div><div class="tab-label">Wallet</div></button>
+      <button class="tab" onclick="goTab('team')"><div class="tab-icon">◫</div><div class="tab-label">Team</div></button>
       <button class="tab active" onclick="goTab('profile')"><div class="tab-icon">◉</div><div class="tab-label">Profil</div></button>
     </div>
     <div class="home-ind"><div class="home-bar"></div></div>
@@ -715,7 +779,7 @@ function goBack(){
 function goTab(tab){
   activeTab=tab;
   // Hide all screens
-  ["home","wallet","profile"].forEach(t=>{
+  ["home","wallet","team","profile"].forEach(t=>{
     const sc=document.getElementById("sc-"+t);
     if(sc) sc.classList.remove("active","behind");
   });
@@ -729,11 +793,12 @@ function goTab(tab){
   if(active){ active.classList.add("active"); screenStack=["sc-"+tab]; }
   // Update tab bar indicators
   document.querySelectorAll(".tab").forEach((el,i)=>{
-    const labels=["home","wallet","profile"];
+    const labels=["home","wallet","team","profile"];
     el.classList.toggle("active",labels[i]===tab);
   });
   if(tab==="home")   renderHome();
   if(tab==="wallet") renderWallet();
+  if(tab==="team")   renderTeam();
 }
 
 // ── Font helper ────────────────────────────────────────────────────────────
@@ -1302,6 +1367,7 @@ async function startApp(user){
   // Show skeleton while loading
   document.getElementById("home-body").innerHTML=`<div style="padding:20px;text-align:center;color:#aaa;font-family:Georgia,serif;font-size:13px;margin-top:40px;">Karten werden geladen ✦</div>`;
   await loadFromDB();
+  await loadTeam();
   renderHome();
   renderWallet();
   updateProfile();
@@ -1414,6 +1480,160 @@ async function saveScannedCard(encoded){
     goBack();
     renderWallet();
   }catch(e){ toast("Fehler beim Speichern"); }
+}
+
+// ── Team State ────────────────────────────────────────────────────────────
+let myTeam = null;
+let teamMembers = [];
+let editTeamTpl = "navy";
+let editTeamLogo = "";
+
+async function loadTeam(){
+  if(!currentUser) return;
+  // Check if user owns a team
+  const {data:owned} = await supa.from("teams").select("*").eq("owner_id", currentUser.id).single();
+  if(owned){ myTeam=owned; }
+  else {
+    // Check if member of a team
+    const {data:membership} = await supa.from("team_members").select("team_id").eq("user_id", currentUser.id).single();
+    if(membership){
+      const {data:team} = await supa.from("teams").select("*").eq("id", membership.team_id).single();
+      myTeam=team||null;
+    }
+  }
+  if(myTeam){
+    const {data:members} = await supa.from("team_members").select("*").eq("team_id", myTeam.id);
+    teamMembers=members||[];
+  }
+}
+
+function renderTeam(){
+  const body=document.getElementById("team-body");
+  const subtitle=document.getElementById("team-subtitle");
+  const actionBtn=document.getElementById("team-action-btn");
+  if(!myTeam){
+    subtitle.textContent="Kein Team";
+    actionBtn.title="Team erstellen";
+    body.innerHTML=`<div class="empty"><div class="empty-icon">◫</div><div class="empty-title">Noch kein Team</div><div class="empty-sub">Erstelle ein Team und lade deine Kollegen ein. Alle teilen dasselbe Design.</div><button class="btn btn-dark" onclick="showCreateTeam()">Team erstellen</button></div>`;
+    return;
+  }
+  const isOwner=myTeam.owner_id===currentUser.id;
+  subtitle.textContent=myTeam.name;
+  actionBtn.title=isOwner?"Team bearbeiten":"";
+  actionBtn.onclick=isOwner?()=>showEditTeam():null;
+  actionBtn.style.visibility=isOwner?"visible":"hidden";
+
+  const memberCount=teamMembers.length;
+  const isPremium=memberCount>10;
+  
+  body.innerHTML=`
+    <div style="background:#f9f8f5;border-radius:14px;border:0.5px solid var(--border);padding:14px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        ${myTeam.logo?`<img src="${myTeam.logo}" style="width:44px;height:30px;object-fit:contain;border-radius:4px;">`:`<div style="width:44px;height:30px;background:#e8eef8;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;">🏢</div>`}
+        <div>
+          <div style="font-size:15px;font-weight:600;color:#1a1a1a;font-family:Georgia,serif;">${myTeam.name}</div>
+          <div style="font-size:11px;color:#aaa;">${memberCount} Mitglied${memberCount!==1?"er":""} · Design: ${TEMPLATES.find(t=>t.id===myTeam.template)?.name||myTeam.template}</div>
+        </div>
+      </div>
+      ${isOwner?`<button class="btn btn-light" style="margin-bottom:8px;" onclick="showInvite()">+ Mitglied einladen</button>`:""}
+      ${memberCount>=10&&isOwner?`<div style="background:#eef2fa;border-radius:8px;padding:10px 12px;font-size:12px;color:#1e3a6e;font-family:Georgia,serif;">✦ Ab 11 Mitgliedern wird Premium benötigt</div>`:""}
+    </div>
+    <div class="sec">Mitglieder (${memberCount}/10 kostenlos)</div>
+    <div style="background:#f9f8f5;border-radius:14px;border:0.5px solid var(--border);padding:0 14px;">
+      ${teamMembers.map(m=>`<div class="info-row"><div class="info-icon-wrap" style="background:#e8eef8;font-size:14px;">${m.role==="owner"?"👑":"👤"}</div><div><div class="info-label">${m.role==="owner"?"Admin":"Mitglied"}</div><div class="info-value">${m.invited_email||m.user_id.slice(0,8)+"..."}</div></div></div>`).join("")}
+    </div>`;
+}
+
+function showCreateTeam(){
+  editTeamTpl="navy"; editTeamLogo="";
+  document.getElementById("team-name").value="";
+  document.getElementById("team-logo-preview").innerHTML="🏢";
+  document.getElementById("create-team-title").textContent="Team erstellen";
+  buildTeamTplGrid("navy");
+  goTo("sc-create-team");
+}
+
+function showEditTeam(){
+  if(!myTeam) return;
+  editTeamTpl=myTeam.template||"navy";
+  editTeamLogo=myTeam.logo||"";
+  document.getElementById("team-name").value=myTeam.name;
+  document.getElementById("team-logo-preview").innerHTML=myTeam.logo?`<img src="${myTeam.logo}" style="max-width:100%;max-height:100%;object-fit:contain;">`:"🏢";
+  document.getElementById("create-team-title").textContent="Team bearbeiten";
+  buildTeamTplGrid(editTeamTpl);
+  goTo("sc-create-team");
+}
+
+function buildTeamTplGrid(selId){
+  document.getElementById("team-tpl-grid").innerHTML=TEMPLATES.map(t=>`
+    <div onclick="editTeamTpl='${t.id}';buildTeamTplGrid('${t.id}')" style="border-radius:10px;overflow:hidden;cursor:pointer;border:${t.id===selId?"2.5px solid #1e3a6e":"2px solid transparent"};transition:border 0.15s;">
+      <div style="background:${t.bg};padding:10px 10px 8px;position:relative;overflow:hidden;">
+        <div style="height:2.5px;width:14px;background:${t.accent};border-radius:1px;margin-bottom:6px;position:relative;z-index:1;"></div>
+        <div style="font-size:13px;color:${t.text};font-family:${t.font==="mono"?"'Courier New',monospace":"Georgia,serif"};position:relative;z-index:1;">Aa</div>
+      </div>
+      <div style="background:#f9f8f5;padding:4px 8px;font-size:10px;font-weight:600;color:#1a1a1a;font-family:Georgia,serif;">${t.name}</div>
+    </div>`).join("");
+}
+
+async function handleTeamLogo(input){
+  const file=input.files[0]; if(!file) return;
+  const prev=document.getElementById("team-logo-preview");
+  prev.innerHTML=`<div style="font-size:10px;color:#aaa;font-family:Georgia,serif;text-align:center;padding:4px;">Lädt...</div>`;
+  try{
+    const ext=file.name.split(".").pop();
+    const fileName=`team_${currentUser.id}_${Date.now()}.${ext}`;
+    const {data,error}=await supa.storage.from("Logos").upload(fileName,file,{upsert:true,contentType:file.type});
+    if(error) throw error;
+    const {data:urlData}=supa.storage.from("Logos").getPublicUrl(fileName);
+    editTeamLogo=urlData.publicUrl;
+    prev.innerHTML=`<img src="${editTeamLogo}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+    toast("Logo hochgeladen ✦");
+  }catch(e){
+    prev.innerHTML="🏢";
+    toast("Upload fehlgeschlagen");
+  }
+}
+
+async function saveTeam(){
+  const name=document.getElementById("team-name").value.trim();
+  if(!name){toast("Bitte Teamname eingeben");return;}
+  if(myTeam&&myTeam.owner_id===currentUser.id){
+    // Update existing team
+    const {error}=await supa.from("teams").update({name,template:editTeamTpl,logo:editTeamLogo}).eq("id",myTeam.id);
+    if(error){toast("Fehler beim Speichern");return;}
+    myTeam={...myTeam,name,template:editTeamTpl,logo:editTeamLogo};
+  } else {
+    // Create new team
+    const {data,error}=await supa.from("teams").insert({name,template:editTeamTpl,logo:editTeamLogo,owner_id:currentUser.id}).select().single();
+    if(error){toast("Fehler beim Erstellen");return;}
+    myTeam=data;
+    // Add owner as member
+    await supa.from("team_members").insert({team_id:myTeam.id,user_id:currentUser.id,role:"owner",invited_email:currentUser.email});
+    teamMembers=[{team_id:myTeam.id,user_id:currentUser.id,role:"owner",invited_email:currentUser.email}];
+  }
+  toast("Team gespeichert ✦");
+  goBack();
+  renderTeam();
+}
+
+function showInvite(){
+  if(!myTeam) return;
+  if(teamMembers.length>=10){
+    toast("Premium für mehr als 10 Mitglieder");
+    return;
+  }
+  const email=prompt("E-Mail-Adresse des Mitglieds:");
+  if(!email) return;
+  inviteMember(email);
+}
+
+async function inviteMember(email){
+  if(!myTeam) return;
+  const {error}=await supa.from("team_members").insert({team_id:myTeam.id,user_id:"pending",role:"member",invited_email:email});
+  if(error){toast("Fehler beim Einladen");return;}
+  teamMembers.push({team_id:myTeam.id,user_id:"pending",role:"member",invited_email:email});
+  renderTeam();
+  toast(`Einladung an ${email} gesendet ✦`);
 }
 
 // ── Landing Page ──────────────────────────────────────────────────────────
