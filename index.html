@@ -743,10 +743,11 @@ async function deleteCardFromDB(dbId){
 }
 
 async function saveWalletToDB(card){
-  if(!currentUser) return;
+  if(!currentUser) return null;
   const row = cleanRow(card, currentUser.id);
-  const {error} = await supa.from("wallet").insert(row);
-  if(error) console.error("wallet insert error:", error);
+  const {data, error} = await supa.from("wallet").insert(row).select().single();
+  if(error){ console.error("wallet insert error:", error); return null; }
+  return data?.id||null;
 }
 
 async function deleteWalletFromDB(dbId){
@@ -1075,8 +1076,8 @@ function openShare(idx){
   const logoUrl=c.logo&&!c.logo.startsWith("data:")? c.logo:"";
   const cardData={name:c.name,title:c.title,company:c.company,email:c.email,phone:c.phone,website:c.website,template:c.template,font:c.font||"georgia",logo:logoUrl,linkedin:c.linkedin||"",xing:c.xing||"",instagram:c.instagram||"",owner_id:currentUser.id};
   const shareUrl=`${location.origin}${location.pathname}?card=${encodeURIComponent(JSON.stringify(cardData))}`;
-  // Store in sessionStorage as backup for AirDrop (URL params sometimes stripped)
-  sessionStorage.setItem("shared_card", JSON.stringify(cardData));
+  // Store in localStorage as backup for AirDrop (URL params sometimes stripped by iOS)
+  localStorage.setItem("qardo_incoming", JSON.stringify({...cardData, ts:Date.now()}));
   
   document.getElementById("share-body").innerHTML=`
     <div class="fadein" style="margin-bottom:16px;">${buildCard(c,c.template,false)}</div>
@@ -1340,10 +1341,22 @@ async function removeWallet(idx){
 function checkIncoming(){
   const params=new URLSearchParams(location.search);
   let raw=params.get("card");
-  // AirDrop fallback: check sessionStorage if no URL param
+  // AirDrop fallback: check localStorage if no URL param (iOS strips params)
   if(!raw){
-    const stored=sessionStorage.getItem("incoming_card");
-    if(stored){ raw=stored; sessionStorage.removeItem("incoming_card"); }
+    const stored=localStorage.getItem("qardo_incoming");
+    if(stored){
+      try{
+        const parsed=JSON.parse(stored);
+        // Only use if stored less than 2 minutes ago
+        if(Date.now()-parsed.ts < 120000){
+          delete parsed.ts;
+          raw=encodeURIComponent(JSON.stringify(parsed));
+          localStorage.removeItem("qardo_incoming");
+        } else {
+          localStorage.removeItem("qardo_incoming");
+        }
+      }catch(e){ localStorage.removeItem("qardo_incoming"); }
+    }
   }
   if(!raw) return false;
   try{
@@ -1401,12 +1414,12 @@ async function saveToWalletFromURL(){
 async function savePendingCard(c){
   if(!currentUser) return;
   c.saved_at=new Date().toISOString();
-  await saveWalletToDB(c);
+  const dbId=await saveWalletToDB(c);
+  if(dbId) c.db_id=dbId;
   wallet.push(c);
   sessionStorage.removeItem("pending_card");
   renderWallet();
   toast("Karte im Wallet gespeichert ✦");
-  // Switch to wallet tab
   setTimeout(()=>goTab("wallet"), 500);
 }
 
@@ -1662,7 +1675,8 @@ async function saveScannedCard(encoded){
   try{
     const c=JSON.parse(decodeURIComponent(encoded));
     c.saved_at=new Date().toISOString();
-    await saveWalletToDB(c);
+    const dbId=await saveWalletToDB(c);
+    if(dbId) c.db_id=dbId;
     wallet.push(c);
     toast("Karte gespeichert ✦");
     stopScanner();
