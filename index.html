@@ -796,7 +796,7 @@ function goTab(tab){
     if(sc) sc.classList.remove("active","behind");
   });
   // Also hide sub-screens
-  ["detail","share","editor","wallet-detail"].forEach(t=>{
+  ["detail","share","editor","wallet-detail","analytics","create-team","team-detail","scanner"].forEach(t=>{
     const sc=document.getElementById("sc-"+t);
     if(sc) sc.classList.remove("active","behind");
   });
@@ -892,12 +892,31 @@ function renderHome(){
 // ── Render wallet ──────────────────────────────────────────────────────────
 function renderWallet(){
   const body=document.getElementById("wallet-body");
-  document.getElementById("wallet-count").textContent=wallet.length+" Karten gesammelt";
-  if(!wallet.length){
+  const total=wallet.length+(myTeam?1:0);
+  document.getElementById("wallet-count").textContent=total+" Karten";
+  let html="";
+
+  // Team card section
+  if(myTeam){
+    const teamCard={
+      name:currentUser.user_metadata?.name||currentUser.email,
+      title:"",company:myTeam.name,
+      email:currentUser.email,phone:"",website:"",
+      template:myTeam.template,font:"georgia",
+      logo:myTeam.logo||""
+    };
+    html+=`<div class="sec">Mein Team · ${myTeam.name}</div>
+    <div class="wallet-row fadein" onclick="openTeamCard()">
+      ${buildCard(teamCard,myTeam.template,true)}
+      <div class="wallet-meta"><span class="wallet-tpl-name">Team-Karte · ${TEMPLATES.find(t=>t.id===myTeam.template)?.name||""}</span><span class="wallet-tap">Tippen ›</span></div>
+    </div>`;
+    if(wallet.length) html+=`<div class="sec" style="margin-top:8px;">Gesammelt</div>`;
+  }
+
+  if(!wallet.length&&!myTeam){
     body.innerHTML=`<div class="empty fadein"><div class="empty-icon">⊟</div><div class="empty-title">Noch keine Karten</div><div class="empty-sub">Scanne den QR-Code einer anderen Person um ihre Visitenkarte hier zu speichern.</div></div>`;
     return;
   }
-  let html="";
   wallet.forEach((c,i)=>{
     const tName=TEMPLATES.find(t=>t.id===c.template)?.name||"";
     html+=`<div class="wallet-row fadein" onclick="openWalletDetail(${i})">
@@ -906,6 +925,50 @@ function renderWallet(){
     </div>`;
   });
   body.innerHTML=html;
+}
+
+function openTeamCard(){
+  if(!myTeam) return;
+  const teamCard={
+    name:currentUser.user_metadata?.name||currentUser.email,
+    title:"",company:myTeam.name,
+    email:currentUser.email,phone:"",website:"",
+    template:myTeam.template,font:"georgia",
+    logo:myTeam.logo||""
+  };
+  // Show team card detail with share option
+  document.getElementById("wdetail-name").textContent="Team-Karte";
+  document.getElementById("wdetail-body").innerHTML=`
+    <div class="fadein" style="display:flex;justify-content:center;margin-bottom:14px;">${buildCard(teamCard,myTeam.template,false)}</div>
+    <div style="background:#eef2fa;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:#1e3a6e;font-family:Georgia,serif;">
+      ✦ Diese Karte wird automatisch mit dem Team-Design erstellt.
+    </div>
+    <button class="btn btn-dark" onclick="shareTeamCard()">📤 Karte teilen</button>`;
+  goTo("sc-wallet-detail");
+}
+
+function shareTeamCard(){
+  if(!myTeam||!currentUser) return;
+  const teamCard={
+    name:currentUser.user_metadata?.name||currentUser.email,
+    title:"",company:myTeam.name,
+    email:currentUser.email,phone:"",website:"",
+    template:myTeam.template,font:"georgia",
+    logo:myTeam.logo||"",
+    owner_id:currentUser.id
+  };
+  // Temporarily set as current card to share
+  const idx=myCards.length>0?0:-1;
+  if(idx>=0){
+    const orig=myCards[idx];
+    myCards[idx]=teamCard;
+    openShare(idx);
+    myCards[idx]=orig;
+  } else {
+    myCards.push(teamCard);
+    openShare(0);
+    myCards.pop();
+  }
 }
 
 // ── Card detail ────────────────────────────────────────────────────────────
@@ -1285,10 +1348,24 @@ async function checkTeamInvite(){
   const {data:invite}=await supa.from("team_members")
     .select("*").eq("invited_email",currentUser.email).eq("user_id","pending").single();
   if(!invite) return;
-  // Accept invite — update user_id
-  await supa.from("team_members").update({user_id:currentUser.id}).eq("id",invite.id);
-  // Load team
+  // Load team info first
   const {data:team}=await supa.from("teams").select("*").eq("id",invite.team_id).single();
+  if(!team) return;
+  // Show join confirmation banner
+  const banner=document.createElement("div");
+  banner.className="pending-banner";
+  banner.style.cssText="position:fixed;top:0;left:50%;transform:translateX(-50%);max-width:390px;width:100%;background:#1e3a6e;color:#f5f1ea;padding:14px 16px;z-index:500;display:flex;align-items:center;justify-content:space-between;gap:10px;";
+  banner.innerHTML=`<div style="font-family:Georgia,serif;font-size:13px;">Einladung: <b>${team.name}</b></div><div style="display:flex;gap:8px;">
+    <button onclick="declineTeamInvite('${invite.id}',this)" style="background:rgba(255,255,255,0.15);border:none;color:#f5f1ea;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Georgia,serif;font-size:12px;">Ablehnen</button>
+    <button onclick="acceptTeamInvite('${invite.id}','${team.id}',this)" style="background:#a8b8d8;border:none;color:#1a1a1a;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Georgia,serif;font-size:12px;font-weight:600;">Beitreten ✦</button>
+  </div>`;
+  document.body.appendChild(banner);
+}
+
+async function acceptTeamInvite(inviteId, teamId, btn){
+  document.querySelectorAll(".pending-banner").forEach(b=>b.remove());
+  await supa.from("team_members").update({user_id:currentUser.id}).eq("id",inviteId);
+  const {data:team}=await supa.from("teams").select("*").eq("id",teamId).single();
   if(team){
     myTeam=team;
     const {data:members}=await supa.from("team_members").select("*").eq("team_id",myTeam.id);
@@ -1296,6 +1373,12 @@ async function checkTeamInvite(){
     toast(`✦ Team "${team.name}" beigetreten!`);
     renderTeam();
   }
+}
+
+async function declineTeamInvite(inviteId, btn){
+  document.querySelectorAll(".pending-banner").forEach(b=>b.remove());
+  await supa.from("team_members").delete().eq("id",inviteId);
+  toast("Einladung abgelehnt");
 }
 
 async function checkPendingCard(){
@@ -1647,8 +1730,14 @@ function renderTeam(){
     </div>
     <div class="sec">Mitglieder (${memberCount}/10 kostenlos)</div>
     <div style="background:#f9f8f5;border-radius:14px;border:0.5px solid var(--border);padding:0 14px;">
-      ${teamMembers.map(m=>`<div class="info-row"><div class="info-icon-wrap" style="background:#e8eef8;font-size:14px;">${m.role==="owner"?"👑":"👤"}</div><div><div class="info-label">${m.role==="owner"?"Admin":"Mitglied"}</div><div class="info-value">${m.invited_email||m.user_id.slice(0,8)+"..."}</div></div></div>`).join("")}
-    </div>`;
+      ${teamMembers.map(m=>`
+      <div class="info-row">
+        <div class="info-icon-wrap" style="background:#e8eef8;font-size:14px;">${m.role==="owner"?"👑":"👤"}</div>
+        <div style="flex:1;"><div class="info-label">${m.role==="owner"?"Admin":"Mitglied"}</div><div class="info-value">${m.invited_email||m.user_id.slice(0,8)+"..."}</div></div>
+        ${isOwner&&m.role!=="owner"?`<button onclick="removeMember('${m.id}')" style="background:none;border:none;color:#c04040;font-size:18px;cursor:pointer;padding:0 4px;">×</button>`:""}
+      </div>`).join("")}
+    </div>
+    ${!isOwner?`<button class="btn btn-danger" style="margin-top:12px;" onclick="leaveTeam()">Team verlassen</button>`:""}`;
 }
 
 function showCreateTeam(){
@@ -1732,6 +1821,22 @@ function showInvite(){
   const email=prompt("E-Mail-Adresse des Mitglieds:");
   if(!email) return;
   inviteMember(email);
+}
+
+async function removeMember(memberId){
+  if(!confirm("Mitglied wirklich entfernen?")) return;
+  await supa.from("team_members").delete().eq("id", memberId);
+  teamMembers=teamMembers.filter(m=>m.id!==memberId);
+  renderTeam();
+  toast("Mitglied entfernt");
+}
+
+async function leaveTeam(){
+  if(!myTeam||!confirm(`Team "${myTeam.name}" wirklich verlassen?`)) return;
+  await supa.from("team_members").delete().eq("team_id",myTeam.id).eq("user_id",currentUser.id);
+  myTeam=null; teamMembers=[];
+  toast("Team verlassen");
+  renderTeam();
 }
 
 async function deleteTeam(){
