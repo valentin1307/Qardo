@@ -1535,8 +1535,9 @@ function renderTeam(){
           <div style="font-size:11px;color:#aaa;">${memberCount} Mitglied${memberCount!==1?"er":""} · Design: ${TEMPLATES.find(t=>t.id===myTeam.template)?.name||myTeam.template}</div>
         </div>
       </div>
-      ${isOwner?`<button class="btn btn-light" style="margin-bottom:8px;" onclick="showInvite()">+ Mitglied einladen</button>`:""}
-      ${memberCount>=10&&isOwner?`<div style="background:#eef2fa;border-radius:8px;padding:10px 12px;font-size:12px;color:#1e3a6e;font-family:Georgia,serif;">✦ Ab 11 Mitgliedern wird Premium benötigt</div>`:""}
+      ${isOwner?`<button class="btn btn-light" style="margin-bottom:8px;" onclick="showInvite()">+ Mitglied einladen</button>
+      <button class="btn btn-danger" onclick="deleteTeam()">Team löschen</button>`:""}
+      ${memberCount>=10&&isOwner?`<div style="background:#eef2fa;border-radius:8px;padding:10px 12px;font-size:12px;color:#1e3a6e;font-family:Georgia,serif;margin-top:8px;">✦ Ab 11 Mitgliedern wird Premium benötigt</div>`:""}
     </div>
     <div class="sec">Mitglieder (${memberCount}/10 kostenlos)</div>
     <div style="background:#f9f8f5;border-radius:14px;border:0.5px solid var(--border);padding:0 14px;">
@@ -1625,6 +1626,16 @@ function showInvite(){
   const email=prompt("E-Mail-Adresse des Mitglieds:");
   if(!email) return;
   inviteMember(email);
+}
+
+async function deleteTeam(){
+  if(!myTeam||myTeam.owner_id!==currentUser.id) return;
+  if(!confirm(`Team "${myTeam.name}" wirklich löschen? Alle Mitglieder verlieren den Zugang.`)) return;
+  await supa.from("team_members").delete().eq("team_id", myTeam.id);
+  await supa.from("teams").delete().eq("id", myTeam.id);
+  myTeam=null; teamMembers=[];
+  toast("Team gelöscht");
+  renderTeam();
 }
 
 async function inviteMember(email){
