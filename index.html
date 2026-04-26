@@ -1384,7 +1384,7 @@ function checkIncoming(){
             <div style="font-size:13px;font-weight:600;color:#1a1a1a;font-family:Georgia,serif;margin-bottom:6px;">Karte speichern</div>
             <div style="font-size:12px;color:#7a6a55;margin-bottom:14px;line-height:1.5;">Lade Qardo um diese Karte zu speichern und deine eigene zu erstellen.</div>
             <button onclick="saveToWalletFromURL()" style="display:block;width:100%;padding:13px;border-radius:12px;background:#1e3a6e;color:#faf7f0;font-size:14px;font-family:Georgia,serif;text-align:center;border:none;cursor:pointer;margin-bottom:10px;">In Wallet speichern ✦</button>
-            <a href="${location.origin}${location.pathname}" style="display:block;padding:13px;border-radius:12px;background:#f5f3ee;color:#1e3a6e;font-size:14px;font-family:Georgia,serif;text-align:center;text-decoration:none;border:0.5px solid #e0d8c0;">Qardo öffnen ↗</a>
+            <a href="https://www.qardo.org/app" style="display:block;padding:13px;border-radius:12px;background:#f5f3ee;color:#1e3a6e;font-size:14px;font-family:Georgia,serif;text-align:center;text-decoration:none;border:0.5px solid #e0d8c0;">Qardo öffnen ↗</a>
           </div>
         </div>
       </div>
@@ -1525,7 +1525,7 @@ async function doReset(){
   err.style.color="#1e3a6e";
   err.textContent="Link wird gesendet...";
   const {error}=await supa.auth.resetPasswordForEmail(email,{
-    redirectTo: location.origin+location.pathname
+    redirectTo: "https://www.qardo.org/app"
   });
   if(error){err.style.color="#c04040";err.textContent="Fehler: "+error.message;return;}
   err.style.color="#1e3a6e";
