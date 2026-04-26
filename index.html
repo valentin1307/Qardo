@@ -892,48 +892,81 @@ function renderHome(){
 // ── Render wallet ──────────────────────────────────────────────────────────
 function renderWallet(){
   const body=document.getElementById("wallet-body");
-  const total=wallet.length+(myTeam?1:0);
+  const total=wallet.length+(myTeam?(1+teamCards.length):0);
   document.getElementById("wallet-count").textContent=total+" Karten";
+
+  if(!wallet.length&&!myTeam){
+    body.innerHTML=`<div class="empty fadein">
+      <div class="empty-icon">⊟</div>
+      <div class="empty-title">Noch keine Karten</div>
+      <div class="empty-sub">Scanne den QR-Code einer anderen Person um ihre Karte hier zu speichern.</div>
+    </div>`;
+    return;
+  }
+
   let html="";
 
-  // Team section
+  // ── Team section ──
   if(myTeam){
     const myTeamCard={
       name:currentUser.user_metadata?.name||currentUser.email,
       title:"",company:myTeam.name,
       email:currentUser.email,phone:"",website:"",
-      template:myTeam.template,font:"georgia",
-      logo:myTeam.logo||""
+      template:myTeam.template,font:"georgia",logo:myTeam.logo||""
     };
-    html+=`<div class="sec">◫ ${myTeam.name}</div>`;
-    // My own team card
-    html+=`<div class="wallet-row fadein" onclick="openTeamCard()">
-      ${buildCard(myTeamCard,myTeam.template,true)}
-      <div class="wallet-meta"><span class="wallet-tpl-name">Meine Team-Karte</span><span class="wallet-tap">Tippen ›</span></div>
+    const tplName=TEMPLATES.find(t=>t.id===myTeam.template)?.name||"";
+    const memberCount=1+teamCards.length;
+
+    html+=`
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="sec" style="margin:0;">◫ ${myTeam.name}</div>
+        <div style="font-size:10px;color:#a8b8d8;font-family:Georgia,serif;">${memberCount} Mitglied${memberCount!==1?"er":""}</div>
+      </div>
+      <div style="background:#f0f4fa;border-radius:14px;border:0.5px solid #d0daea;overflow:hidden;">
+        <!-- My team card -->
+        <div onclick="openTeamCard()" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:0.5px solid #d8e2f0;cursor:pointer;">
+          <div style="flex-shrink:0;">${buildCard(myTeamCard,myTeam.template,false).replace('width:242px;height:139px','width:80px;height:46px').replace('font-size:13px','font-size:5.5px').replace('font-size:9px','font-size:3px').replace('font-size:8px','font-size:3px').replace('font-size:7.5px','font-size:3px')}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;color:#1a1a1a;font-family:Georgia,serif;font-weight:500;">${myTeamCard.name}</div>
+            <div style="font-size:11px;color:#1e3a6e;font-family:Georgia,serif;">Meine Team-Karte · ${tplName}</div>
+          </div>
+          <div style="font-size:16px;color:#a8b8d8;">›</div>
+        </div>
+        ${teamCards.map((c,i)=>`
+        <div onclick="openTeamMemberCard(${i})" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:0.5px solid #d8e2f0;cursor:pointer;${i===teamCards.length-1?'border-bottom:none;':''}">
+          <div style="width:44px;height:44px;border-radius:50%;background:#1e3a6e;display:flex;align-items:center;justify-content:center;font-size:16px;color:#eef2fa;font-family:Georgia,serif;flex-shrink:0;font-weight:normal;">
+            ${(c.name||"?").split(" ").map(p=>p[0]||"").join("").toUpperCase().slice(0,2)}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;color:#1a1a1a;font-family:Georgia,serif;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name||c.memberEmail||"Mitglied"}</div>
+            <div style="font-size:11px;color:#7a7a7a;font-family:Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.title?c.title+(c.company?" · "+c.company:""):c.company||c.email||""}</div>
+          </div>
+          <div style="font-size:16px;color:#a8b8d8;">›</div>
+        </div>`).join("")}
+      </div>
     </div>`;
-    // Other team members' cards
-    if(teamCards.length){
-      teamCards.forEach((c,i)=>{
-        html+=`<div class="wallet-row fadein" onclick="openTeamMemberCard(${i})">
-          ${buildCard(c,c.template,true)}
-          <div class="wallet-meta"><span class="wallet-tpl-name">${c.name||c.memberEmail}</span><span class="wallet-tap">Tippen ›</span></div>
-        </div>`;
-      });
-    }
-    if(wallet.length) html+=`<div class="sec" style="margin-top:8px;">Gesammelt</div>`;
   }
 
-  if(!wallet.length&&!myTeam){
-    body.innerHTML=`<div class="empty fadein"><div class="empty-icon">⊟</div><div class="empty-title">Noch keine Karten</div><div class="empty-sub">Scanne den QR-Code einer anderen Person um ihre Visitenkarte hier zu speichern.</div></div>`;
-    return;
+  // ── Collected cards ──
+  if(wallet.length){
+    html+=`<div class="sec">Gesammelt</div>`;
+    wallet.forEach((c,i)=>{
+      const tName=TEMPLATES.find(t=>t.id===c.template)?.name||"";
+      html+=`
+      <div onclick="openWalletDetail(${i})" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f9f8f5;border-radius:12px;border:0.5px solid var(--border);cursor:pointer;margin-bottom:8px;">
+        <div style="width:44px;height:44px;border-radius:50%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-family:Georgia,serif;flex-shrink:0;font-weight:normal;">
+          ${(c.name||"?").split(" ").map(p=>p[0]||"").join("").toUpperCase().slice(0,2)}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;color:#1a1a1a;font-family:Georgia,serif;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
+          <div style="font-size:11px;color:#7a7a7a;font-family:Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.title?c.title+(c.company?" · "+c.company:""):c.company||c.email||""}</div>
+        </div>
+        <div style="font-size:16px;color:#a8b8d8;">›</div>
+      </div>`;
+    });
   }
-  wallet.forEach((c,i)=>{
-    const tName=TEMPLATES.find(t=>t.id===c.template)?.name||"";
-    html+=`<div class="wallet-row fadein" onclick="openWalletDetail(${i})">
-      ${buildCard(c,c.template,true)}
-      <div class="wallet-meta"><span class="wallet-tpl-name">${c.name} · ${tName}</span><span class="wallet-tap">Tippen ›</span></div>
-    </div>`;
-  });
+
   body.innerHTML=html;
 }
 
