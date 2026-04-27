@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background -->
+  <rect width="32" height="32" rx="7" fill="#1e3a6e"/>
+  <!-- Card -->
+  <rect x="6" y="10" width="20" height="13" rx="2" fill="#f5f0e8" transform="rotate(-5 16 16)"/>
+  <!-- Accent bar -->
+  <rect x="6" y="10" width="3" height="13" rx="1.5" fill="#a8b8d8" transform="rotate(-5 16 16)"/>
+</svg>
