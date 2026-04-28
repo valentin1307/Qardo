@@ -1430,8 +1430,17 @@ function openWalletDetail(idx){
   SOCIALS.forEach(s=>{
     if(c[s.key]) socials+=`<a href="https://${s.prefix}${c[s.key]}" target="_blank" class="social-badge"><div class="social-icon" style="background:${s.color};">${s.icon}</div><div><div class="social-label">${s.label}</div><div class="social-handle">@${c[s.key]}</div></div><div class="info-arrow">›</div></a>`;
   });
+  const folderOptions=folders.map(f=>`<option value="${f.id}" ${c.folder_id===f.id?"selected":""}>${f.name}</option>`).join("");
+  const folderBlock=folders.length?`<div style="margin-bottom:12px;background:#f9f8f5;border-radius:10px;padding:10px 14px;border:0.5px solid var(--border);display:flex;align-items:center;gap:10px;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a6e" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+    <select onchange="moveToFolder(${idx},this.value)" style="flex:1;border:none;background:transparent;font-family:Georgia,serif;font-size:13px;color:#1a1a1a;outline:none;">
+      <option value="">Kein Ordner</option>
+      ${folderOptions}
+    </select>
+  </div>`:"";
   document.getElementById("wdetail-body").innerHTML=`
     <div class="fadein" style="display:flex;justify-content:center;margin-bottom:14px;">${buildCard(c,c.template,false)}</div>
+    ${folderBlock}
     <div style="background:#faf8f4;border-radius:14px;border:0.5px solid var(--border);padding:0 14px;margin-bottom:14px;">
       ${c.email?`<a href="mailto:${c.email}" class="info-row" style="text-decoration:none;"><div class="info-icon-wrap" style="background:#e8f0ff;">✉</div><div><div class="info-label">E-Mail</div><div class="info-value" style="color:#1a5aaa;">${c.email}</div></div><div class="info-arrow">›</div></a>`:""}
       ${c.phone?`<a href="tel:${c.phone}" class="info-row" style="text-decoration:none;"><div class="info-icon-wrap" style="background:#e8ffe8;">☎</div><div><div class="info-label">Telefon</div><div class="info-value" style="color:#1a5aaa;">${c.phone}</div></div><div class="info-arrow">›</div></a>`:""}
