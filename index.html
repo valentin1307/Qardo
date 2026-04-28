@@ -643,7 +643,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
       <button class="back-btn" onclick="goBack()">‹</button>
       <div class="back-title" id="folder-detail-name">Ordner</div>
       <div style="display:flex;gap:8px;margin-left:auto;">
-        <button class="icon-btn" onclick="openScannerForFolder()" title="Karte scannen & hinzufügen">
+        <button class="icon-btn" onclick="openScannerForFolder()" title="Karte scannen">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
         </button>
         <button class="icon-btn" onclick="deleteCurrentFolder()" title="Ordner löschen">
@@ -1184,6 +1184,7 @@ function openDetail(idx){
       <button class="btn btn-dark" onclick="openShare(${idx})">📤 Teilen</button>
       <button class="btn btn-light" onclick="openEditor(${idx})">✎ Bearbeiten</button>
     </div>
+    <button class="btn btn-light" onclick="downloadVCF(myCards[${idx}])" style="margin-bottom:10px;">📇 Als Kontakt speichern</button>
     <button class="btn btn-danger" onclick="deleteCard(${idx})">Karte löschen</button>`;
   goTo("sc-detail");
 }
@@ -1463,6 +1464,7 @@ function openWalletDetail(idx){
       <div class="sec" style="margin-bottom:4px;">Gespeichert</div>
       <div style="font-size:13px;color:#1a1a1a;font-family:Georgia,serif;">${new Date(c.savedAt||Date.now()).toLocaleDateString("de-AT",{day:"2-digit",month:"long",year:"numeric"})}</div>
     </div>
+    <button class="btn btn-light" onclick="downloadVCF(wallet[${idx}])" style="margin-bottom:10px;">📇 Als Kontakt speichern</button>
     <button class="btn btn-danger" onclick="removeWallet(${idx})">Aus Wallet entfernen</button>`;
   goTo("sc-wallet-detail");
 }
@@ -1534,6 +1536,7 @@ function checkIncoming(){
             <div style="font-size:13px;font-weight:600;color:#1a1a1a;font-family:Georgia,serif;margin-bottom:6px;">Karte speichern</div>
             <div style="font-size:12px;color:#7a6a55;margin-bottom:14px;line-height:1.5;">Lade Qardo um diese Karte zu speichern und deine eigene zu erstellen.</div>
             <button onclick="saveToWalletFromURL()" style="display:block;width:100%;padding:13px;border-radius:12px;background:#1e3a6e;color:#faf7f0;font-size:14px;font-family:Georgia,serif;text-align:center;border:none;cursor:pointer;margin-bottom:10px;">In Wallet speichern ✦</button>
+            <button onclick="downloadVCF(${JSON.stringify(c).replace(/`/g,"'")})" style="display:block;width:100%;padding:13px;border-radius:12px;background:#f5f3ee;color:#1e3a6e;font-size:14px;font-family:Georgia,serif;text-align:center;border:none;cursor:pointer;margin-bottom:10px;">📇 Als Kontakt speichern</button>
             <a href="https://www.qardo.org/app" style="display:block;padding:13px;border-radius:12px;background:#f5f3ee;color:#1e3a6e;font-size:14px;font-family:Georgia,serif;text-align:center;text-decoration:none;border:0.5px solid #e0d8c0;">Qardo öffnen ↗</a>
           </div>
         </div>
@@ -2145,6 +2148,34 @@ async function inviteMember(email){
   teamMembers.push({team_id:myTeam.id,user_id:"pending",role:"member",invited_email:email});
   renderTeam();
   toast(`Einladung an ${email} gesendet ✦`);
+}
+
+// ── VCF Export ────────────────────────────────────────────────────────────
+function downloadVCF(card){
+  const lines=[
+    "BEGIN:VCARD",
+    "VERSION:3.0",
+    `FN:${card.name||""}`,
+    `N:${(card.name||"").split(" ").reverse().join(";")};;`,
+  ];
+  if(card.title||card.company) lines.push(`ORG:${card.company||""}`);
+  if(card.title) lines.push(`TITLE:${card.title}`);
+  if(card.email) lines.push(`EMAIL;TYPE=INTERNET:${card.email}`);
+  if(card.phone) lines.push(`TEL;TYPE=CELL:${card.phone}`);
+  if(card.website) lines.push(`URL:${card.website}`);
+  if(card.linkedin) lines.push(`X-SOCIALPROFILE;TYPE=linkedin:${card.linkedin}`);
+  if(card.instagram) lines.push(`X-SOCIALPROFILE;TYPE=instagram:${card.instagram}`);
+  lines.push("END:VCARD");
+  
+  const blob=new Blob([lines.join("
+")],{type:"text/vcard;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=`${(card.name||"kontakt").replace(/\s+/g,"_")}.vcf`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast("Kontakt gespeichert ✦");
 }
 
 // ── Landing Page ──────────────────────────────────────────────────────────
