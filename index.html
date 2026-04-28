@@ -702,6 +702,9 @@ let editFont  = "georgia";
 let editLogo  = null;
 let screenStack= ["sc-home"];
 let activeTab = "home";
+let teamCards = [];
+let folders   = [];
+let currentFolderId = null;
 
 // ── DB helpers ─────────────────────────────────────────────────────────────
 function cleanRow(card, uid){
@@ -1005,7 +1008,6 @@ function renderWallet(){
 }
 
 // ── Folder functions ──────────────────────────────────────────────────────
-let currentFolderId = null;
 
 function showCreateFolder(){
   const name=prompt("Name des Ordners (z.B. 'Networking Event März'):");
@@ -1898,9 +1900,6 @@ let myTeam = null;
 let teamMembers = [];
 let editTeamTpl = "navy";
 let editTeamLogo = "";
-
-let teamCards = []; // Cards from all team members
-let folders = []; // Wallet folders
 
 async function loadTeam(){
   if(!currentUser) return;
