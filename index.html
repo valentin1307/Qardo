@@ -642,9 +642,14 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
     <div class="back-row">
       <button class="back-btn" onclick="goBack()">‹</button>
       <div class="back-title" id="folder-detail-name">Ordner</div>
-      <button class="icon-btn" onclick="deleteCurrentFolder()" style="margin-left:auto;" title="Ordner löschen">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
-      </button>
+      <div style="display:flex;gap:8px;margin-left:auto;">
+        <button class="icon-btn" onclick="openScannerForFolder()" title="Karte scannen & hinzufügen">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </button>
+        <button class="icon-btn" onclick="deleteCurrentFolder()" title="Ordner löschen">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        </button>
+      </div>
     </div>
     <div class="body" id="folder-detail-body"></div>
   </div>
@@ -1746,6 +1751,7 @@ let scannerStream = null;
 let scannerInterval = null;
 
 function openScanner(){
+  sessionStorage.removeItem("scan_to_folder");
   goTo("sc-scanner");
   document.getElementById("scanner-result").style.display="none";
   document.getElementById("scanner-status").textContent="Kamera wird gestartet...";
@@ -1816,16 +1822,48 @@ function handleScanResult(data){
   document.getElementById("scanner-result").innerHTML=`<button onclick="openScanner()" class="btn btn-light" style="width:100%;">Nochmal scannen</button>`;
 }
 
+function openScannerForFolder(){
+  // Open scanner but remember we're in a folder context
+  sessionStorage.setItem("scan_to_folder", currentFolderId);
+  goTo("sc-scanner");
+  document.getElementById("scanner-result").style.display="none";
+  document.getElementById("scanner-status").textContent="Kamera wird gestartet...";
+  navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}})
+    .then(stream=>{
+      scannerStream=stream;
+      const video=document.getElementById("scanner-video");
+      video.srcObject=stream;
+      video.play();
+      document.getElementById("scanner-status").textContent="Kamera auf QR-Code richten";
+      startScanLoop();
+    })
+    .catch(()=>{
+      document.getElementById("scanner-status").textContent="Kamera nicht verfügbar.";
+    });
+}
+
 async function saveScannedCard(encoded){
   try{
     const c=JSON.parse(decodeURIComponent(encoded));
     c.saved_at=new Date().toISOString();
+    // Check if scanning from within a folder
+    const targetFolder=sessionStorage.getItem("scan_to_folder");
+    if(targetFolder) c.folder_id=targetFolder;
     const dbId=await saveWalletToDB(c);
     if(dbId) c.db_id=dbId;
+    // Update folder_id in DB if needed
+    if(targetFolder&&dbId){
+      await supa.from("wallet").update({folder_id:targetFolder}).eq("id",dbId);
+      sessionStorage.removeItem("scan_to_folder");
+    }
     wallet.push(c);
     toast("Karte gespeichert ✦");
     stopScanner();
     goBack();
+    // If we were in folder, refresh folder view
+    if(targetFolder){
+      renderFolderDetail(targetFolder);
+    }
     renderWallet();
   }catch(e){ toast("Fehler beim Speichern"); }
 }
