@@ -2174,9 +2174,8 @@ let csvEmails = [];
 
 function showCSVImport(){
   csvEmails=[];
-  document.getElementById("csv-input").value="";
-  document.getElementById("csv-preview").style.display="none";
-  document.getElementById("csv-confirm").style.display="none";
+  document.getElementById("bulk-emails").value="";
+  document.getElementById("csv-preview").textContent="";
   goTo("sc-csv-import");
 }
 
