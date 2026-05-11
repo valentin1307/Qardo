@@ -2037,7 +2037,7 @@ function renderTeam(){
       </div>
       ${isOwner?`
         <button class="btn btn-light" style="margin-bottom:8px;" onclick="showInvite()">+ Mitglied einladen</button>
-        <button class="btn btn-light" style="margin-bottom:8px;" onclick="showCSVImport()">📋 Mehrere per CSV einladen</button>
+        <button class="btn btn-light" style="margin-bottom:8px;" onclick="showCSVImport()">📋 Mehrere einladen</button>
         <button class="btn btn-light" style="margin-bottom:8px;" onclick="showCreateCardForMember()">✎ Karte für Mitglied erstellen</button>
         <button class="btn btn-danger" onclick="deleteTeam()">Team löschen</button>`:""}
       ${memberCount>=10&&isOwner?`<div style="background:#eef2fa;border-radius:8px;padding:10px 12px;font-size:12px;color:#1e3a6e;font-family:Georgia,serif;margin-top:8px;">✦ Ab 11 Mitgliedern wird Premium benötigt</div>`:""}
